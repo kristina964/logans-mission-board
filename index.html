@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Isgro Crew Quest Board</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FF6B6B">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Quest Board">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ashton: #FF6B6B;
+    --ashton-light: #FFE5E5;
+    --autumn: #A78BFA;
+    --autumn-light: #EDE9FE;
+    --logan: #34D399;
+    --logan-light: #D1FAE5;
+    --gold: #FBBF24;
+    --bg: #0a0a1a;
+    --card: #12122a;
+    --text: #e8e8ff;
+    --muted: #8888bb;
+    --radius: 8px;
+    --neon-pink: #ff2d78;
+    --neon-cyan: #00f5ff;
+    --neon-green: #39ff14;
+    --neon-yellow: #ffe600;
+    --scanline: rgba(0,0,0,0.18);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        var(--scanline) 2px,
+        var(--scanline) 4px
+      ),
+      radial-gradient(ellipse at 50% 0%, rgba(0,245,255,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse at 0% 100%, rgba(255,45,120,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse at 100% 100%, rgba(167,139,250,0.07) 0%, transparent 60%);
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 20px;
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    color: var(--text);
+  }
+
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    padding: 28px 20px 16px;
+    position: relative;
+  }
+
+  .header-console {
+    display: inline-block;
+    background: #0d0d22;
+    border: 3px solid var(--neon-cyan);
+    border-radius: 6px;
+    padding: 18px 30px 14px;
+    box-shadow:
+      0 0 10px var(--neon-cyan),
+      0 0 30px rgba(0,245,255,0.2),
+      inset 0 0 20px rgba(0,245,255,0.04);
+    position: relative;
+  }
+
+  .header-console::before {
+    content: '● ● ●';
+    position: absolute;
+    top: 6px; left: 10px;
+    font-size: 0.68rem;
+    color: var(--neon-cyan);
+    letter-spacing: 3px;
+    opacity: 0.5;
+  }
+
+  .header-console::after {
+    content: 'v1.0';
+    position: absolute;
+    top: 6px; right: 10px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 1rem;
+    color: var(--neon-cyan);
+    opacity: 0.5;
+  }
+
+  header h1 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(1.1rem, 4.5vw, 1.8rem);
+    color: #ffffff;
+    text-shadow:
+      2px 2px 0px var(--neon-cyan),
+      -1px -1px 0px var(--neon-cyan);
+    line-height: 1.6;
+    margin-bottom: 6px;
+    letter-spacing: 2px;
+  }
+
+  @keyframes flicker {
+    0%,95%,100% { opacity: 1; }
+    96% { opacity: 0.7; }
+    97% { opacity: 1; }
+    98% { opacity: 0.5; }
+    99% { opacity: 1; }
+  }
+
+  header p {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.62rem;
+    color: var(--neon-pink);
+    text-shadow: 0 0 8px var(--neon-pink);
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  /* ── WEEK NAV ── */
+  .week-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin: 20px auto;
+    max-width: 400px;
+  }
+
+  .week-nav button {
+    background: #0d0d22;
+    border: 2px solid var(--neon-cyan);
+    border-radius: 4px;
+    width: 38px;
+    height: 38px;
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--neon-cyan);
+    box-shadow: 0 0 8px rgba(0,245,255,0.3);
+  }
+  .week-nav button:hover {
+    background: var(--neon-cyan);
+    color: #000;
+    box-shadow: 0 0 16px var(--neon-cyan);
+  }
+
+  .week-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.68rem;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 6px var(--neon-yellow);
+    min-width: 200px;
+    text-align: center;
+    line-height: 1.8;
+  }
+
+  /* ── SCOREBOARD ── */
+  .scoreboard {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    max-width: 900px;
+    margin: 0 auto 28px;
+  }
+
+  .score-card {
+    border-radius: var(--radius);
+    padding: 16px 12px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s;
+    border: 2px solid;
+  }
+  .score-card:hover { transform: translateY(-3px); }
+
+  .score-card.ashton {
+    background: #1a0a0a;
+    border-color: var(--ashton);
+    box-shadow: 0 0 12px rgba(255,107,107,0.4), inset 0 0 20px rgba(255,107,107,0.05);
+  }
+  .score-card.autumn {
+    background: #120a1a;
+    border-color: var(--autumn);
+    box-shadow: 0 0 12px rgba(167,139,250,0.4), inset 0 0 20px rgba(167,139,250,0.05);
+  }
+  .score-card.logan {
+    background: #0a1a10;
+    border-color: var(--logan);
+    box-shadow: 0 0 12px rgba(52,211,153,0.4), inset 0 0 20px rgba(52,211,153,0.05);
+  }
+
+  .score-avatar {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 6px;
+    animation: float 3s ease-in-out infinite;
+  }
+  .score-avatar svg { image-rendering: pixelated; }
+  .score-card.autumn .score-avatar { animation-delay: 0.5s; }
+  .score-card.logan .score-avatar  { animation-delay: 1s; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  .score-name {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.82rem;
+    letter-spacing: 1px;
+    line-height: 1.8;
+  }
+  .score-card.ashton .score-name { color: var(--ashton); text-shadow: 0 0 6px var(--ashton); }
+  .score-card.autumn .score-name { color: var(--autumn); text-shadow: 0 0 6px var(--autumn); }
+  .score-card.logan  .score-name { color: var(--logan);  text-shadow: 0 0 6px var(--logan); }
+
+  .score-age {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .score-points {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+  .score-card.ashton .score-points { color: var(--ashton); text-shadow: 0 0 10px var(--ashton); }
+  .score-card.autumn .score-points { color: var(--autumn); text-shadow: 0 0 10px var(--autumn); }
+  .score-card.logan  .score-points { color: var(--logan);  text-shadow: 0 0 10px var(--logan); }
+
+  .score-points span { font-size: 1rem; opacity: 0.7; }
+
+  .score-badge {
+    position: absolute;
+    top: 8px; right: 8px;
+    font-size: 1.3rem;
+  }
+
+  .progress-bar-wrap {
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    height: 6px;
+    margin-top: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .progress-bar {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+    animation: glow-bar 2s ease-in-out infinite alternate;
+  }
+  .score-card.ashton .progress-bar { background: var(--ashton); box-shadow: 0 0 6px var(--ashton); }
+  .score-card.autumn .progress-bar { background: var(--autumn); box-shadow: 0 0 6px var(--autumn); }
+  .score-card.logan  .progress-bar { background: var(--logan);  box-shadow: 0 0 6px var(--logan); }
+
+  @keyframes glow-bar {
+    from { opacity: 0.7; } to { opacity: 1; }
+  }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    padding: 8px 18px;
+    border-radius: 4px;
+    border: 2px solid #333355;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.62rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: #0d0d22;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+
+  .tab-btn.active.ashton, .tab-btn:hover.ashton { background: #1a0808; color: var(--ashton); border-color: var(--ashton); box-shadow: 0 0 10px rgba(255,107,107,0.5); }
+  .tab-btn.active.autumn, .tab-btn:hover.autumn { background: #0e0818; color: var(--autumn); border-color: var(--autumn); box-shadow: 0 0 10px rgba(167,139,250,0.5); }
+  .tab-btn.active.logan,  .tab-btn:hover.logan  { background: #081408; color: var(--logan);  border-color: var(--logan);  box-shadow: 0 0 10px rgba(52,211,153,0.5); }
+  .tab-btn.active.all,    .tab-btn:hover.all    { background: #0d0d22; color: var(--neon-cyan); border-color: var(--neon-cyan); box-shadow: 0 0 10px rgba(0,245,255,0.4); }
+
+  /* ── CHORES ── */
+  .chores-container { max-width: 900px; margin: 0 auto; }
+
+  .day-section { margin-bottom: 20px; }
+
+  .day-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 1rem;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 6px var(--neon-yellow);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    padding-left: 4px;
+    border-left: 3px solid var(--neon-yellow);
+    padding-left: 10px;
+  }
+
+  .chore-list { display: flex; flex-direction: column; gap: 6px; }
+
+  .chore-item {
+    background: #0e0e24;
+    border-radius: 6px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid #1e1e40;
+    border-left: 4px solid;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .chore-item::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.1) 3px, rgba(0,0,0,0.1) 4px);
+    pointer-events: none;
+  }
+
+  .chore-item.ashton { border-left-color: var(--ashton); }
+  .chore-item.autumn { border-left-color: var(--autumn); }
+  .chore-item.logan  { border-left-color: var(--logan); }
+
+  .chore-item:hover { transform: translateX(3px); }
+  .chore-item.ashton:hover { box-shadow: 0 0 10px rgba(255,107,107,0.2); background: #1a0a0a; }
+  .chore-item.autumn:hover { box-shadow: 0 0 10px rgba(167,139,250,0.2); background: #12091a; }
+  .chore-item.logan:hover  { box-shadow: 0 0 10px rgba(52,211,153,0.2);  background: #091409; }
+
+  .chore-item.done { opacity: 0.45; }
+  .chore-item.done .chore-text { text-decoration: line-through; color: var(--muted); }
+
+  .chore-check {
+    width: 26px; height: 26px;
+    border-radius: 3px;
+    border: 2px solid #333355;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.05rem;
+    font-family: 'Press Start 2P', monospace;
+    transition: all 0.2s;
+  }
+  .chore-item.ashton.done .chore-check { background: var(--ashton); border-color: var(--ashton); color: #000; box-shadow: 0 0 8px var(--ashton); }
+  .chore-item.autumn.done .chore-check { background: var(--autumn); border-color: var(--autumn); color: #000; box-shadow: 0 0 8px var(--autumn); }
+  .chore-item.logan.done  .chore-check { background: var(--logan);  border-color: var(--logan);  color: #000; box-shadow: 0 0 8px var(--logan); }
+
+  .chore-emoji { font-size: 1.5rem; }
+
+  .chore-info { flex: 1; }
+  .chore-text { font-family: 'Press Start 2P', monospace; font-size: 0.68rem; color: var(--text); line-height: 1.8; letter-spacing: 0.5px; }
+  .chore-sub  { font-family: 'Press Start 2P', monospace; font-size: 0.68rem; color: var(--muted); margin-top: 4px; line-height: 1.8; }
+
+  .chore-meta { display: flex; align-items: center; gap: 6px; }
+
+  .chore-pts {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.68rem;
+    padding: 4px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .chore-item.ashton .chore-pts { background: rgba(255,107,107,0.15); color: var(--ashton); border: 1px solid rgba(255,107,107,0.3); }
+  .chore-item.autumn .chore-pts { background: rgba(167,139,250,0.15); color: var(--autumn); border: 1px solid rgba(167,139,250,0.3); }
+  .chore-item.logan  .chore-pts { background: rgba(52,211,153,0.15);  color: var(--logan);  border: 1px solid rgba(52,211,153,0.3); }
+
+  /* ── KID GROUPS ── */
+  .kid-group { margin-bottom: 14px; }
+
+  .kid-group-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.68rem;
+    padding: 6px 12px;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+  .kid-group-label svg { image-rendering: pixelated; flex-shrink: 0; }
+  .ashton-label { background: rgba(255,107,107,0.15); color: var(--ashton); border: 1px solid rgba(255,107,107,0.4); text-shadow: 0 0 6px var(--ashton); }
+  .autumn-label { background: rgba(167,139,250,0.15); color: var(--autumn); border: 1px solid rgba(167,139,250,0.4); text-shadow: 0 0 6px var(--autumn); }
+  .logan-label  { background: rgba(52,211,153,0.15);  color: var(--logan);  border: 1px solid rgba(52,211,153,0.4);  text-shadow: 0 0 6px var(--logan); }
+
+  /* ── REWARDS ── */
+  .rewards-section {
+    max-width: 900px;
+    margin: 28px auto 0;
+    background: #0e0e24;
+    border-radius: var(--radius);
+    padding: 22px;
+    border: 2px solid var(--neon-pink);
+    box-shadow: 0 0 16px rgba(255,45,120,0.2), inset 0 0 20px rgba(255,45,120,0.03);
+  }
+
+  .rewards-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.95rem;
+    color: var(--neon-pink);
+    text-shadow: 0 0 8px var(--neon-pink);
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+  }
+
+  .rewards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+  }
+
+  .reward-card {
+    border: 1px solid #222244;
+    border-radius: 6px;
+    padding: 12px 8px;
+    text-align: center;
+    transition: all 0.2s;
+    background: #0a0a1e;
+  }
+
+  .reward-card.unlocked {
+    border-color: var(--neon-yellow);
+    box-shadow: 0 0 12px rgba(255,230,0,0.3);
+    animation: pulse-gold 2s ease-in-out infinite;
+    background: #141408;
+  }
+
+  @keyframes pulse-gold {
+    0%, 100% { box-shadow: 0 0 8px rgba(255,230,0,0.2); }
+    50% { box-shadow: 0 0 20px rgba(255,230,0,0.5); }
+  }
+
+  .reward-card.ashton-reward { border-color: rgba(255,107,107,0.3); }
+  .reward-card.autumn-reward { border-color: rgba(167,139,250,0.3); }
+  .reward-card.logan-reward  { border-color: rgba(52,211,153,0.3); }
+  .reward-card.unlocked.ashton-reward { border-color: var(--ashton); box-shadow: 0 0 12px rgba(255,107,107,0.4); background: #1a0808; }
+  .reward-card.unlocked.autumn-reward { border-color: var(--autumn); box-shadow: 0 0 12px rgba(167,139,250,0.4); background: #0e0818; }
+  .reward-card.unlocked.logan-reward  { border-color: var(--logan);  box-shadow: 0 0 12px rgba(52,211,153,0.4);  background: #081408; }
+
+  .reward-icon { font-size: 2rem; margin-bottom: 4px; }
+  .reward-name { font-weight: 800; font-size: 1rem; color: var(--text); line-height: 1.3; }
+  .reward-pts  { font-family: 'Press Start 2P', monospace; font-size: 0.68rem; color: var(--neon-yellow); margin-top: 3px; text-shadow: 0 0 4px var(--neon-yellow); }
+  .reward-who  { font-size: 1.3rem; color: var(--muted); font-weight: 700; margin-top: 2px; }
+
+  .rewards-divider {
+    grid-column: 1 / -1;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+    padding: 8px 0 4px;
+    border-top: 1px dashed #333355;
+    margin-top: 4px;
+    letter-spacing: 1px;
+  }
+
+  /* ── CONFETTI ── */
+  .confetti-wrap {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 999; overflow: hidden;
+  }
+
+  .confetti-piece {
+    position: absolute; top: -20px;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    animation: confetti-fall 1.2s ease-in forwards;
+    opacity: 0;
+  }
+
+  @keyframes confetti-fall {
+    0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #0d0d22;
+    border: 2px solid var(--neon-cyan);
+    border-radius: 4px;
+    padding: 10px 22px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.68rem;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 6px var(--neon-cyan);
+    box-shadow: 0 0 16px rgba(0,245,255,0.3);
+    z-index: 1000;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── RESET BUTTON ── */
+  .reset-btn {
+    display: block;
+    margin: 20px auto 0;
+    padding: 10px 22px;
+    border-radius: 4px;
+    background: #0d0d22;
+    border: 2px solid #333355;
+    font-family: 'Press Start 2P', monospace;
+    font-weight: 400;
+    font-size: 0.62rem;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+  }
+  .reset-btn:hover { border-color: var(--neon-pink); color: var(--neon-pink); box-shadow: 0 0 10px rgba(255,45,120,0.3); }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  @media (max-width: 600px) {
+    .scoreboard { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .score-points { font-size: 1rem; }
+    .score-name { font-size: 0.68rem; }
+    body { padding: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="confetti-wrap" id="confetti"></div>
+
+<div class="toast" id="toast"></div>
+
+<header>
+  <div class="header-console">
+    <h1>ISGRO CREW</h1>
+    <p>★ QUEST BOARD ★</p>
+  </div>
+</header>
+
+<div class="week-nav">
+  <button onclick="changeWeek(-1)">◀</button>
+  <div class="week-label" id="weekLabel"></div>
+  <button onclick="changeWeek(1)">▶</button>
+</div>
+
+<!-- SCOREBOARD -->
+<div class="scoreboard" id="scoreboard"></div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn all active" onclick="filterBy('all', this)">🏠 All</button>
+  <button class="tab-btn ashton" onclick="filterBy('ashton', this)">🔥 Ashton</button>
+  <button class="tab-btn autumn" onclick="filterBy('autumn', this)">🌸 Autumn</button>
+  <button class="tab-btn logan"  onclick="filterBy('logan', this)">🛡️ Logan</button>
+</div>
+
+<!-- CHORES -->
+<div class="chores-container" id="choresContainer"></div>
+
+<!-- REWARDS -->
+<div class="rewards-section">
+  <div class="rewards-title">🏆 Reward Store</div>
+  <div class="rewards-grid" id="rewardsGrid"></div>
+</div>
+
+<button class="reset-btn" onclick="resetWeek()">🔄 Reset This Week's Quests</button>
+
+<script>
+const KIDS = {
+  ashton: { name: 'Ashton', age: 13, emoji: '⚔️', color: '#FF6B6B' },
+  autumn: { name: 'Autumn', age: 12, emoji: '🪄', color: '#A78BFA' },
+  logan:  { name: 'Logan',  age: 7,  emoji: '🛡️', color: '#34D399' }
+};
+
+// Minecraft-style pixel head SVGs per kid
+function mcHead(who, size = 48) {
+  const heads = {
+
+    // ── ASHTON = CREEPER ──
+    // Green face, dark forehead, iconic creeper eyes & mouth
+    ashton: `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 8 8" shape-rendering="crispEdges">
+      <!-- base green face -->
+      <rect x="1" y="0" width="6" height="7" fill="#4A7C3F"/>
+      <!-- darker forehead band -->
+      <rect x="1" y="0" width="6" height="1" fill="#2D5A22"/>
+      <!-- darker shading sides -->
+      <rect x="1" y="0" width="1" height="7" fill="#3A6B30"/>
+      <rect x="6" y="0" width="1" height="7" fill="#3A6B30"/>
+      <!-- creeper eyes — two dark squares -->
+      <rect x="2" y="2" width="1" height="1" fill="#111111"/>
+      <rect x="5" y="2" width="1" height="1" fill="#111111"/>
+      <!-- creeper mouth — classic T shape -->
+      <rect x="3" y="4" width="2" height="1" fill="#111111"/>
+      <rect x="3" y="5" width="1" height="1" fill="#111111"/>
+      <rect x="4" y="5" width="1" height="1" fill="#111111"/>
+      <rect x="2" y="5" width="1" height="1" fill="#111111"/>
+      <rect x="5" y="5" width="1" height="1" fill="#111111"/>
+      <!-- subtle pixel highlight -->
+      <rect x="2" y="1" width="1" height="1" fill="#5A9C4A"/>
+    </svg>`,
+
+    // ── AUTUMN = ZOMBIE ──
+    // Rotting greenish skin, grey-blue tones, zombie eyes, jagged mouth
+    autumn: `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 8 8" shape-rendering="crispEdges">
+      <!-- zombie skin base — desaturated green-grey -->
+      <rect x="1" y="0" width="6" height="7" fill="#6B8C5A"/>
+      <!-- darker patches (rotting effect) -->
+      <rect x="1" y="0" width="2" height="2" fill="#4A6B3A"/>
+      <rect x="5" y="3" width="2" height="2" fill="#4A6B3A"/>
+      <rect x="3" y="5" width="1" height="2" fill="#4A6B3A"/>
+      <!-- shading sides -->
+      <rect x="1" y="0" width="1" height="7" fill="#5A7A4A"/>
+      <rect x="6" y="0" width="1" height="7" fill="#5A7A4A"/>
+      <!-- zombie eyes — dark with grey iris -->
+      <rect x="2" y="2" width="1" height="1" fill="#1a1a1a"/>
+      <rect x="5" y="2" width="1" height="1" fill="#1a1a1a"/>
+      <!-- jagged zombie mouth -->
+      <rect x="2" y="5" width="4" height="1" fill="#2a1a1a"/>
+      <rect x="3" y="4" width="1" height="1" fill="#2a1a1a"/>
+      <rect x="5" y="4" width="1" height="1" fill="#2a1a1a"/>
+      <!-- light highlight top left -->
+      <rect x="2" y="1" width="1" height="1" fill="#7AAD68"/>
+    </svg>`,
+
+    // ── LOGAN = SKELETON ──
+    // Bone white/grey face, black hollow eyes, skeleton nose hole, teeth mouth
+    logan: `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 8 8" shape-rendering="crispEdges">
+      <!-- bone white base -->
+      <rect x="1" y="0" width="6" height="7" fill="#C8C8C8"/>
+      <!-- slight grey shading for depth -->
+      <rect x="1" y="0" width="1" height="7" fill="#A8A8A8"/>
+      <rect x="6" y="0" width="1" height="7" fill="#A8A8A8"/>
+      <rect x="1" y="0" width="6" height="1" fill="#B0B0B0"/>
+      <!-- hollow black eye sockets — tall rectangles -->
+      <rect x="2" y="2" width="1" height="2" fill="#111111"/>
+      <rect x="5" y="2" width="1" height="2" fill="#111111"/>
+      <!-- nose cavity — single dark pixel -->
+      <rect x="3" y="3" width="1" height="1" fill="#333333"/>
+      <rect x="4" y="3" width="1" height="1" fill="#333333"/>
+      <!-- skeleton teeth mouth -->
+      <rect x="2" y="5" width="4" height="1" fill="#111111"/>
+      <rect x="2" y="5" width="1" height="1" fill="#DDDDDD"/>
+      <rect x="3" y="5" width="1" height="1" fill="#111111"/>
+      <rect x="4" y="5" width="1" height="1" fill="#DDDDDD"/>
+      <rect x="5" y="5" width="1" height="1" fill="#111111"/>
+      <!-- highlight spot -->
+      <rect x="2" y="1" width="1" height="1" fill="#E8E8E8"/>
+    </svg>`
+  };
+  return heads[who] || heads.ashton;
+}
+
+const BADGES = ['🌱','⭐','🌟','💫','🏅','🥈','🥇','👑'];
+
+const CHORES = [
+  // --- DAILY ---
+  { id: 'a1',  who: 'ashton', day: 'daily',  emoji: '🛏️', text: 'Make your bed',          sub: 'Tidy it up each morning',      pts: 5  },
+  { id: 'a2',  who: 'ashton', day: 'daily',  emoji: '🍽️', text: 'Clear breakfast & dinner plate', sub: 'Both meals — bring it to the sink', pts: 8  },
+  { id: 'au1', who: 'autumn', day: 'daily',  emoji: '🛏️', text: 'Make your bed',          sub: 'Tidy it up each morning',      pts: 5  },
+  { id: 'au2', who: 'autumn', day: 'daily',  emoji: '🍽️', text: 'Clear breakfast & dinner plate', sub: 'Both meals — bring it to the sink', pts: 8  },
+  { id: 'l1',  who: 'logan',  day: 'daily',  emoji: '🛏️', text: 'Make your bed',          sub: 'With help if needed 😊',       pts: 5  },
+  { id: 'l2',  who: 'logan',  day: 'daily',  emoji: '🍽️', text: 'Clear breakfast & dinner plate', sub: 'Both meals — bring it to the sink', pts: 8  },
+  // --- WEEKLY ---
+  { id: 'a3',  who: 'ashton', day: 'weekly', emoji: '🍳', text: 'Load the dishwasher',     sub: 'Rinse & stack it properly',    pts: 10 },
+  { id: 'a4',  who: 'ashton', day: 'weekly', emoji: '✨', text: 'Unload the dishwasher',   sub: 'Put everything away',          pts: 10 },
+  { id: 'a5',  who: 'ashton', day: 'weekly', emoji: '🧺', text: 'Fold your laundry',       sub: 'Fold & put it all away',       pts: 12 },
+  { id: 'a6',  who: 'ashton', day: 'weekly', emoji: '🧹', text: 'Clean your bedroom',      sub: 'Tidy, vacuum, surfaces',       pts: 15 },
+  { id: 'a7',  who: 'ashton', day: 'weekly', emoji: '🚿', text: 'Clean your bathroom',     sub: 'Sink, toilet & counters',      pts: 15 },
+  { id: 'au3', who: 'autumn', day: 'weekly', emoji: '🍳', text: 'Load the dishwasher',     sub: 'Rinse & stack it properly',    pts: 10 },
+  { id: 'au4', who: 'autumn', day: 'weekly', emoji: '✨', text: 'Unload the dishwasher',   sub: 'Put everything away',          pts: 10 },
+  { id: 'au5', who: 'autumn', day: 'weekly', emoji: '🧺', text: 'Fold your laundry',       sub: 'Fold & put it all away',       pts: 12 },
+  { id: 'au6', who: 'autumn', day: 'weekly', emoji: '🧹', text: 'Clean your bedroom',      sub: 'Tidy, vacuum, surfaces',       pts: 15 },
+  { id: 'au7', who: 'autumn', day: 'weekly', emoji: '🚿', text: 'Clean your bathroom',     sub: 'Sink, toilet & counters',      pts: 15 },
+  { id: 'l3',  who: 'logan',  day: 'weekly', emoji: '🍳', text: 'Help load the dishwasher',sub: 'Pass dishes to Kris or Dad',   pts: 10 },
+  { id: 'l4',  who: 'logan',  day: 'weekly', emoji: '✨', text: 'Help unload dishwasher',  sub: 'Put away the plastic stuff',   pts: 10 },
+  { id: 'l5',  who: 'logan',  day: 'weekly', emoji: '🧺', text: 'Fold your laundry',       sub: 'With help if needed 😊',       pts: 10 },
+  // --- INSTRUMENTS ---
+  { id: 'inst_a',  who: 'ashton', day: 'weekly', emoji: '🎸', text: 'Guitar practice',         sub: '30 mins — play something good',  pts: 15 },
+  { id: 'inst_au', who: 'autumn', day: 'weekly', emoji: '🎻', text: 'Violin practice',          sub: '30 mins — practice your piece',  pts: 15 },
+  { id: 'inst_l',  who: 'logan',  day: 'weekly', emoji: '🎹', text: 'Piano practice',           sub: '30 mins — fingers on the keys!', pts: 15 },
+  // --- PLANTS & OUTDOOR ---
+  { id: 'plant_a',  who: 'ashton', day: 'weekly', emoji: '🪴', text: 'Water indoor plants',     sub: 'Check soil first, don\'t overwater', pts: 8 },
+  { id: 'plant_au', who: 'autumn', day: 'weekly', emoji: '🌿', text: 'Water outdoor plants',    sub: 'Give them a good drink',            pts: 8 },
+  { id: 'outdoor',  who: 'ashton', day: 'weekly', emoji: '🍂', text: 'Help with outdoor cleanup', sub: 'Ask Kris or Dad what needs doing', pts: 12 },
+];
+
+const REWARDS = [
+  // ── ASHTON (age 13) — 8 rewards ──
+  { id: 'r_a1', who: 'ashton', icon: '🍔', name: 'Pick your fave takeout',      pts: 40 },
+  { id: 'r_a2', who: 'ashton', icon: '🎬', name: 'Pick the family movie',       pts: 35 },
+  { id: 'r_a3', who: 'ashton', icon: '🌙', name: 'Stay up 1 hr late (Fri/Sat)', pts: 45 },
+  { id: 'r_a4', who: 'ashton', icon: '🛍️', name: 'Mall trip + $20 spending $',  pts: 100 },
+  { id: 'r_a5', who: 'ashton', icon: '🎮', name: 'New video game / app',        pts: 60 },
+  { id: 'r_a6', who: 'ashton', icon: '🏃', name: 'Activity day (your pick)',     pts: 80 },
+  { id: 'r_a7', who: 'ashton', icon: '🍦', name: 'Ice cream trip',              pts: 30 },
+  { id: 'r_a8', who: 'ashton', icon: '📱', name: '1 hr extra screen time',      pts: 25 },
+
+  // ── AUTUMN (age 12) — 8 rewards ──
+  { id: 'r_au1', who: 'autumn', icon: '🍔', name: 'Pick your fave takeout',     pts: 40 },
+  { id: 'r_au2', who: 'autumn', icon: '🎬', name: 'Pick the family movie',      pts: 35 },
+  { id: 'r_au3', who: 'autumn', icon: '🌙', name: 'Stay up 1 hr late (Fri/Sat)',pts: 45 },
+  { id: 'r_au4', who: 'autumn', icon: '🛍️', name: 'Mall trip + $20 spending $', pts: 100 },
+  { id: 'r_au5', who: 'autumn', icon: '💅', name: 'Mani-pedi with Kris',        pts: 60 },
+  { id: 'r_au6', who: 'autumn', icon: '🎭', name: 'Activity day (your pick)',    pts: 80 },
+  { id: 'r_au7', who: 'autumn', icon: '🍦', name: 'Ice cream trip',             pts: 30 },
+  { id: 'r_au8', who: 'autumn', icon: '📱', name: '1 hr extra screen time',     pts: 25 },
+
+  // ── LOGAN (age 7) — 8 rewards ──
+  { id: 'r_l1', who: 'logan',  icon: '🍔', name: 'Pick your fave takeout',      pts: 25 },
+  { id: 'r_l2', who: 'logan',  icon: '🎬', name: 'Pick the family movie',       pts: 20 },
+  { id: 'r_l3', who: 'logan',  icon: '🌙', name: 'Stay up 30 min late',         pts: 15 },
+  { id: 'r_l4', who: 'logan',  icon: '🧸', name: 'Pick a new small toy',        pts: 40 },
+  { id: 'r_l5', who: 'logan',  icon: '🎮', name: 'New game / app',              pts: 30 },
+  { id: 'r_l6', who: 'logan',  icon: '🎯', name: 'Activity day (your pick)',     pts: 50 },
+  { id: 'r_l7', who: 'logan',  icon: '🍦', name: 'Ice cream trip',              pts: 18 },
+  { id: 'r_l8', who: 'logan',  icon: '📱', name: '1 hr extra screen time',      pts: 15 },
+
+  // ── FAMILY (everyone) ──
+  { id: 'r19', who: 'all',    icon: '🍕', name: 'Pizza night (your choice)',    pts: 120 },
+  { id: 'r20', who: 'all',    icon: '🎳', name: 'Family bowling night',         pts: 150 },
+  { id: 'r21', who: 'all',    icon: '🥾', name: 'Family hike day',              pts: 80  },
+];
+
+let currentFilter = 'all';
+let weekOffset = 0;
+let state = {};
+
+function getWeekKey() {
+  const now = new Date();
+  now.setDate(now.getDate() + weekOffset * 7);
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  const weekNum = Math.ceil(((now - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
+  return `week_${now.getFullYear()}_${weekNum}`;
+}
+
+function getWeekNumber() {
+  const now = new Date();
+  now.setDate(now.getDate() + weekOffset * 7);
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  return Math.ceil(((now - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
+}
+
+// Rotating chores: cook a meal alternates Ashton → Autumn → Ashton → ...
+// Make school lunch alternates Ashton → Autumn → Ashton → ...
+// Logan is too young for cooking duty but cheers them on 🌿
+function getRotatingChores() {
+  const wk = getWeekNumber();
+  const cookKid   = wk % 2 === 0 ? 'ashton' : 'autumn'; // alternates each week
+  const lunchKid  = wk % 2 === 0 ? 'autumn' : 'ashton'; // opposite kid each week
+
+  return [
+    {
+      id: 'rot_cook',
+      who: cookKid,
+      day: 'weekly',
+      emoji: '👨‍🍳',
+      text: 'Cook a meal for the family',
+      sub: 'Pick something, ask Kris/Dad first',
+      pts: 25,
+      rotating: true,
+      rotateLabel: '🔄 Rotating'
+    },
+    {
+      id: 'rot_lunch',
+      who: lunchKid,
+      day: 'weekly',
+      emoji: '🥪',
+      text: 'Make school lunch',
+      sub: 'Pack it the night before',
+      pts: 15,
+      rotating: true,
+      rotateLabel: '🔄 Rotating'
+    }
+  ];
+}
+
+function loadState() {
+  const key = getWeekKey();
+  const saved = localStorage.getItem(key);
+  state = saved ? JSON.parse(saved) : {};
+}
+
+function saveState() {
+  localStorage.setItem(getWeekKey(), JSON.stringify(state));
+}
+
+function getMonthKey() {
+  const now = new Date();
+  now.setDate(now.getDate() + weekOffset * 7);
+  return `month_${now.getFullYear()}_${now.getMonth()}`;
+}
+
+function isRedeemed(rewardId) {
+  return !!localStorage.getItem(`redeemed_${getMonthKey()}_${rewardId}`);
+}
+
+function markRedeemed(rewardId) {
+  localStorage.setItem(`redeemed_${getMonthKey()}_${rewardId}`, Date.now());
+}
+
+function getMonthlyPoints(who) {
+  // Sum points across ALL weeks in the current viewed month
+  const now = new Date();
+  now.setDate(now.getDate() + weekOffset * 7);
+  const yr = now.getFullYear();
+  const mo = now.getMonth();
+  let total = 0;
+
+  // Scan all localStorage keys for weeks in this month
+  for (let key in localStorage) {
+    if (!key.startsWith('week_')) continue;
+    const parts = key.split('_'); // week_YYYY_WW
+    if (parts.length !== 3) continue;
+
+    // Try to figure out what month week number falls in
+    const weekYear = parseInt(parts[1]);
+    const weekNum  = parseInt(parts[2]);
+    if (weekYear !== yr) continue;
+
+    // Get first day of that ISO week
+    const jan1 = new Date(weekYear, 0, 1);
+    const weekStart = new Date(jan1);
+    weekStart.setDate(jan1.getDate() + (weekNum - 1) * 7 - jan1.getDay() + 1);
+    if (weekStart.getMonth() !== mo) continue;
+
+    // Count completed chores for this kid in this week
+    const weekState = JSON.parse(localStorage.getItem(key) || '{}');
+    const allChores = [...CHORES, ...getRotatingChores()];
+    allChores.forEach(c => {
+      if (c.who === who && weekState[key + '_' + c.id]) {
+        total += c.pts;
+      }
+    });
+  }
+
+  // Also add current week's state (may not be saved yet)
+  const wk = getWeekKey();
+  const allChores = [...CHORES, ...getRotatingChores()];
+  allChores.forEach(c => {
+    if (c.who === who && state[wk + '_' + c.id]) {
+      total += c.pts;
+    }
+  });
+
+  return total;
+}
+
+function getDaysLeftInMonth() {
+  const now = new Date();
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  return lastDay.getDate() - now.getDate();
+}
+
+function getMonthName() {
+  const now = new Date();
+  now.setDate(now.getDate() + weekOffset * 7);
+  return now.toLocaleString('default', { month: 'long' });
+}
+
+function getPoints(who) {
+  const allChores = [...CHORES, ...getRotatingChores()];
+  return allChores
+    .filter(c => c.who === who && state[getWeekKey() + '_' + c.id])
+    .reduce((sum, c) => sum + c.pts, 0);
+}
+
+function getTotalPossible(who) {
+  const allChores = [...CHORES, ...getRotatingChores()];
+  return allChores.filter(c => c.who === who).reduce((sum, c) => sum + c.pts, 0);
+}
+
+function getBadge(pts) {
+  if (pts >= 200) return BADGES[7];
+  if (pts >= 150) return BADGES[6];
+  if (pts >= 100) return BADGES[5];
+  if (pts >= 70)  return BADGES[4];
+  if (pts >= 50)  return BADGES[3];
+  if (pts >= 30)  return BADGES[2];
+  if (pts >= 10)  return BADGES[1];
+  return BADGES[0];
+}
+
+function renderScoreboard() {
+  const sb = document.getElementById('scoreboard');
+  sb.innerHTML = Object.entries(KIDS).map(([id, k]) => {
+    const pts = getPoints(id);
+    const max = getTotalPossible(id);
+    const pct = Math.min(100, Math.round((pts / max) * 100));
+    return `
+      <div class="score-card ${id}">
+        <span class="score-badge">${getBadge(pts)}</span>
+        <span class="score-avatar">${mcHead(id, 52)}</span>
+        <div class="score-name">${k.name}</div>
+        <div class="score-age">Age ${k.age}</div>
+        <div class="score-points">${pts}<span> pts</span></div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" style="width:${pct}%"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function getDayOrder() {
+  return ['daily','weekly'];
+}
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function getDayEmoji(day) {
+  const map = { daily:'☀️', weekly:'📅' };
+  return map[day] || '';
+}
+
+function renderChores() {
+  const container = document.getElementById('choresContainer');
+  const dayOrder = getDayOrder();
+  const wk = getWeekKey();
+
+  const allChores = [...CHORES, ...getRotatingChores()];
+  const filtered = currentFilter === 'all' ? allChores : allChores.filter(c => c.who === currentFilter);
+  const grouped = {};
+  dayOrder.forEach(d => { grouped[d] = filtered.filter(c => c.day === d); });
+
+  container.innerHTML = dayOrder.map(day => {
+    const items = grouped[day];
+    if (!items.length) return '';
+
+    let innerHtml = '';
+    if (currentFilter === 'all') {
+      const kidOrder = ['ashton', 'autumn', 'logan'];
+      innerHtml = kidOrder.map(kid => {
+        const kidItems = items.filter(c => c.who === kid);
+        if (!kidItems.length) return '';
+        return `
+          <div class="kid-group">
+            <div class="kid-group-label ${kid}-label">${mcHead(kid, 20)} ${KIDS[kid].name}</div>
+            <div class="chore-list">
+              ${kidItems.map(c => choreRow(c, wk)).join('')}
+            </div>
+          </div>`;
+      }).join('');
+    } else {
+      innerHtml = `<div class="chore-list">${items.map(c => choreRow(c, wk)).join('')}</div>`;
+    }
+
+    return `
+      <div class="day-section">
+        <div class="day-label">${getDayEmoji(day)} ${capitalize(day)}</div>
+        ${innerHtml}
+      </div>`;
+  }).join('');
+}
+
+function choreRow(c, wk) {
+  const done = !!state[wk + '_' + c.id];
+  return `
+    <div class="chore-item ${c.who} ${done ? 'done' : ''}" onclick="toggleChore('${c.id}')">
+      <div class="chore-check">${done ? '✓' : ''}</div>
+      <div class="chore-emoji">${c.emoji}</div>
+      <div class="chore-info">
+        <div class="chore-text">${c.text}</div>
+        <div class="chore-sub">${c.sub}${c.rotating ? ' <span style="font-size:0.95rem;opacity:0.7">🔄 rotates weekly</span>' : ''}</div>
+      </div>
+      <div class="chore-meta">
+        <span class="chore-pts">+${c.pts}⭐</span>
+      </div>
+    </div>`;
+}
+
+function renderRewards() {
+  const grid = document.getElementById('rewardsGrid');
+  const kidColours = { ashton: '#FF6B6B', autumn: '#A78BFA', logan: '#34D399' };
+
+  // Use current week's points (redeemable anytime)
+  const pts = {
+    ashton: getPoints('ashton'),
+    autumn: getPoints('autumn'),
+    logan:  getPoints('logan')
+  };
+
+  const renderCard = (r, kidPts) => {
+    const redeemed = isRedeemed(r.id);
+    const eligible  = !redeemed && kidPts >= r.pts;
+    const pctFill   = Math.min(100, Math.round((kidPts / r.pts) * 100));
+    const neon      = r.who !== 'all' ? kidColours[r.who] : '#ffe600';
+    const clickAttr = eligible ? `onclick="showRewardPopup('${r.id}')" style="cursor:pointer"` : '';
+
+    let statusBadge = '';
+    if (redeemed) {
+      statusBadge = `<div style="
+        position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+        background:rgba(0,0,0,0.6);border-radius:6px;z-index:3;
+      ">
+        <div style="
+          border:3px solid #ff2d78;border-radius:4px;padding:4px 8px;
+          font-family:'Press Start 2P',monospace;font-size:0.55rem;color:#ff2d78;
+          text-shadow:0 0 8px #ff2d78;transform:rotate(-15deg);
+          box-shadow:0 0 10px #ff2d7888;letter-spacing:1px;background:rgba(0,0,0,0.7);
+          white-space:nowrap;
+        ">✓ REDEEMED</div>
+      </div>`;
+    }
+
+    return `
+      <div class="reward-card ${eligible ? 'unlocked' : ''} ${redeemed ? 'redeemed-card' : ''} ${r.who !== 'all' ? r.who + '-reward' : ''}" ${clickAttr} style="position:relative">
+        ${statusBadge}
+        <div class="reward-icon" style="${redeemed ? 'opacity:0.4' : ''}">${r.icon}</div>
+        <div class="reward-name" style="${redeemed ? 'opacity:0.4' : ''}">${r.name}</div>
+        <div class="reward-pts" style="${redeemed ? 'opacity:0.4' : ''}">${r.pts} pts</div>
+        <div style="background:rgba(255,255,255,0.08);border-radius:2px;height:4px;margin-top:6px;overflow:hidden;border:1px solid rgba(255,255,255,0.1)">
+          <div style="height:100%;width:${redeemed ? 100 : pctFill}%;background:${redeemed ? '#ff2d78' : neon};box-shadow:0 0 4px ${redeemed ? '#ff2d78' : neon};border-radius:2px;transition:width 0.5s ease"></div>
+        </div>
+        ${redeemed
+          ? `<div style="font-family:'Press Start 2P',monospace;font-size:0.55rem;color:#ff2d78;margin-top:4px;opacity:0.7">THIS MONTH</div>`
+          : eligible
+            ? `<div style="font-family:'Press Start 2P',monospace;font-size:0.68rem;color:${neon};text-shadow:0 0 6px ${neon};margin-top:4px;animation:blink 1s step-end infinite">★ TAP TO CLAIM ★</div>`
+            : `<div style="font-family:'Press Start 2P',monospace;font-size:0.5rem;color:#8888bb;margin-top:4px">${kidPts}/${r.pts}</div>`}
+      </div>`;
+  };
+
+  // Build sections: one per kid + shared family section
+  const kidOrder = ['ashton', 'autumn', 'logan'];
+  let html = '';
+
+  // Show filtered or all
+  const showKids = currentFilter === 'all' ? kidOrder : [currentFilter];
+
+  showKids.forEach(kid => {
+    const kidRewards = REWARDS.filter(r => r.who === kid);
+    if (!kidRewards.length) return;
+    const neon = kidColours[kid];
+    html += `
+      <div style="grid-column:1/-1;display:flex;align-items:center;gap:10px;margin-top:${html ? '14px' : '0'}">
+        ${mcHead(kid, 28)}
+        <span style="font-family:'Press Start 2P',monospace;font-size:0.68rem;color:${neon};text-shadow:0 0 6px ${neon};letter-spacing:1px">${KIDS[kid].name.toUpperCase()}</span>
+        <span style="font-family:'Press Start 2P',monospace;font-size:0.5rem;color:#8888bb">${pts[kid]} PTS</span>
+      </div>`;
+    html += kidRewards.map(r => renderCard(r, pts[kid])).join('');
+  });
+
+  // Family rewards — use max pts across visible kids
+  const familyRewards = REWARDS.filter(r => r.who === 'all');
+  if (familyRewards.length && (currentFilter === 'all')) {
+    const maxPts = Math.max(...kidOrder.map(k => pts[k]));
+    html += `<div style="grid-column:1/-1;font-family:'Press Start 2P',monospace;font-size:0.62rem;color:#ffe600;text-shadow:0 0 6px #ffe600;padding:10px 0 4px;border-top:1px dashed #333355;margin-top:10px;letter-spacing:1px">🏠 FAMILY REWARDS</div>`;
+    html += familyRewards.map(r => renderCard(r, maxPts)).join('');
+  } else if (familyRewards.length && currentFilter !== 'all') {
+    const kidPts = pts[currentFilter] || 0;
+    html += `<div style="grid-column:1/-1;font-family:'Press Start 2P',monospace;font-size:0.62rem;color:#ffe600;text-shadow:0 0 6px #ffe600;padding:10px 0 4px;border-top:1px dashed #333355;margin-top:10px;letter-spacing:1px">🏠 FAMILY REWARDS</div>`;
+    html += familyRewards.map(r => renderCard(r, kidPts)).join('');
+  }
+
+  grid.innerHTML = html;
+}
+
+// Reward-specific hype messages
+const REWARD_MSGS = {
+  // Ashton
+  r_a1: { top: "TAKEOUT NIGHT! 🍔",              body: "Your fave restaurant, your order. You've earned every bite. Fire behaviour." },
+  r_a2: { top: "MOVIE NIGHT: YOUR PICK 🎬",       body: "The remote is yours. The crew must comply. Main character activated." },
+  r_a3: { top: "STAY UP LATE PASS 🌙",            body: "One extra hour Friday or Saturday. Show this to Kris or Dad. It's valid." },
+  r_a4: { top: "MALL TRIP + $20 💸",              body: "$20 spending money AND a mall trip? Built different behaviour right here." },
+  r_a5: { top: "NEW GAME DROPPED 🎮",             body: "Quests completed. New game acquired. The grind was worth it. GG." },
+  r_a6: { top: "ACTIVITY DAY: YOUR CALL 🏃",      body: "You pick the vibe, you pick the place. It's giving main character energy." },
+  r_a7: { top: "ICE CREAM INCOMING 🍦",           body: "You EARNED this scoop. Tell Kris — it's time. No cap." },
+  r_a8: { top: "EXTRA SCREEN TIME: LOADED 📱",    body: "1 whole hour extra. Use it wisely. Or don't. Bet." },
+  // Autumn
+  r_au1: { top: "TAKEOUT NIGHT! 🍔",             body: "Your favourite food tonight. You picked, you earned it. Bet." },
+  r_au2: { top: "MOVIE NIGHT: YOUR PICK 🎬",      body: "The remote is yours. She picks, everyone watches. Queen behaviour." },
+  r_au3: { top: "STAY UP LATE PASS 🌙",           body: "One extra hour Friday or Saturday. Show this to Kris or Dad. It's valid." },
+  r_au4: { top: "MALL TRIP + $20 💸",             body: "$20 spending money AND a mall trip? She's slay incarnate." },
+  r_au5: { top: "MANI-PEDI WITH KRIS 💅",         body: "Nails + Kris time = peak reward energy. Go book it with her! 🌸" },
+  r_au6: { top: "ACTIVITY DAY: YOUR CALL 🎭",     body: "You pick the plans. It's giving queen who has everything energy." },
+  r_au7: { top: "ICE CREAM INCOMING 🍦",          body: "She worked hard and the scoop knows it. Time to celebrate!" },
+  r_au8: { top: "EXTRA SCREEN TIME: LOADED 📱",   body: "1 whole hour extra. Use it wisely. Or don't. Bet." },
+  // Logan
+  r_l1: { top: "TAKEOUT NIGHT! 🍔",              body: "You pick the restaurant tonight! Tell Kris and Dad — it's your call!" },
+  r_l2: { top: "MOVIE NIGHT: YOUR PICK 🎬",       body: "You're the director tonight! Pick something good for the whole crew!" },
+  r_l3: { top: "STAY UP LATE PASS 🌙",            body: "30 extra minutes! Show this to Kris or Dad. You earned it, champion!" },
+  r_l4: { top: "NEW TOY UNLOCKED! 🧸",            body: "You worked SO hard and it SHOWS. Time to pick your prize!" },
+  r_l5: { top: "NEW GAME UNLOCKED! 🎮",           body: "Quest complete — new game GET! Kris and Dad are so proud!" },
+  r_l6: { top: "ACTIVITY DAY! 🎯",               body: "You pick what we do today! The whole crew is ready. Let's GO!" },
+  r_l7: { top: "ICE CREAM TIME! 🍦",             body: "You earned this scoop fair and square. SUPERSTAR!" },
+  r_l8: { top: "EXTRA SCREEN TIME! 📱",           body: "1 whole hour extra! You did it! Kris and Dad say YES!" },
+  // Family
+  r19:  { top: "PIZZA NIGHT UNLOCKED! 🍕",        body: "The WHOLE crew gets pizza. Someone tell Kris and Dad — it's happening!" },
+  r20:  { top: "BOWLING NIGHT: LET'S GO! 🎳",     body: "Shoes, lanes, and strikes. The whole crew is going. ISGRO CREW W!" },
+  r21:  { top: "FAMILY HIKE DAY! 🥾",             body: "Touch grass — officially sanctioned. Pick the trail and let's ride!" },
+};
+
+async function showRewardPopup(rewardId) {
+  const reward = REWARDS.find(r => r.id === rewardId);
+  if (!reward) return;
+
+  const msg  = REWARD_MSGS[rewardId] || { top: `${reward.icon} REWARD UNLOCKED!`, body: "You earned it!" };
+  const neon = reward.who !== 'all' ? { ashton: '#FF6B6B', autumn: '#A78BFA', logan: '#34D399' }[reward.who] : '#ffe600';
+  const kidName = reward.who !== 'all' ? KIDS[reward.who].name : 'The Crew';
+
+  ['reward-popup','reward-overlay'].forEach(id => { const el = document.getElementById(id); if (el) el.remove(); });
+
+  const overlay = document.createElement('div');
+  overlay.id = 'reward-overlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);z-index:1000;backdrop-filter:blur(4px);';
+
+  const popup = document.createElement('div');
+  popup.id = 'reward-popup';
+  popup.style.cssText = `
+    position:fixed;top:50%;left:50%;
+    transform:translate(-50%,-50%) scale(0.5);
+    background:#0a0a1a;border-radius:8px;padding:28px 24px 22px;
+    text-align:center;z-index:1001;width:min(380px,92vw);
+    box-shadow:0 0 0 3px ${neon},0 0 40px ${neon}88;
+    opacity:0;transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    overflow:hidden;font-family:'Nunito',sans-serif;
+  `;
+
+  popup.innerHTML = `
+    <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.15) 3px,rgba(0,0,0,0.15) 4px);pointer-events:none;z-index:1"></div>
+    <div style="position:relative;z-index:2" id="reward-popup-inner">
+      <div style="font-family:'Press Start 2P',monospace;font-size:0.62rem;color:${neon};letter-spacing:2px;margin-bottom:12px;text-shadow:0 0 8px ${neon}">
+        ★ REWARD UNLOCKED ★
+      </div>
+      <div style="font-size:3.5rem;margin-bottom:10px;animation:float 2s ease-in-out infinite">${reward.icon}</div>
+      <div style="font-family:'Press Start 2P',monospace;font-size:0.82rem;color:${neon};line-height:1.8;margin-bottom:12px;text-shadow:0 0 10px ${neon}">
+        ${msg.top}
+      </div>
+      <div style="font-size:1rem;font-weight:700;color:#c8c8ff;margin-bottom:18px;line-height:1.6;padding:0 4px">
+        ${msg.body}
+      </div>
+      <div id="email-status" style="font-family:'Press Start 2P',monospace;font-size:0.55rem;color:${neon};margin-bottom:16px;line-height:1.8;animation:blink 1s step-end infinite">
+        ✉ NOTIFYING KRIS &amp; DAD...
+      </div>
+      <button onclick="['reward-popup','reward-overlay'].forEach(id=>{const e=document.getElementById(id);if(e)e.remove()})"
+        style="background:${neon};color:#000;border:none;border-radius:4px;padding:14px 28px;font-family:'Press Start 2P',monospace;font-size:0.68rem;cursor:pointer;width:100%;letter-spacing:1px;box-shadow:0 0 14px ${neon}88">
+        [ AWESOME! ★ ]
+      </button>
+    </div>
+  `;
+
+  const close = () => { popup.remove(); overlay.remove(); };
+  overlay.onclick = close;
+  document.body.appendChild(overlay);
+  document.body.appendChild(popup);
+
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    popup.style.opacity = '1';
+    popup.style.transform = 'translate(-50%,-50%) scale(1)';
+  }));
+
+  // Mark redeemed immediately
+  markRedeemed(rewardId);
+  setTimeout(() => renderRewards(), 300);
+
+  // Auto-send via Telegram
+  // ── TELEGRAM CONFIG ──────────────────────────────────────────
+  const TELEGRAM_BOT_TOKEN = '8704085297:AAGjvFz3schsjm0VFvWHPbLgnWg50wozEPQ';
+  const TELEGRAM_CHAT_IDS  = [
+    '1531590129',    // Kristina
+    '326167601',    // Jason
+  ];
+  // ─────────────────────────────────────────────────────────────
+
+  const now = new Date().toLocaleString('en-CA', { dateStyle: 'full', timeStyle: 'short' });
+
+  const updateStatus = (html, animate) => {
+    const el = document.getElementById('email-status');
+    if (el) {
+      el.innerHTML = html;
+      el.style.animation = animate ? 'blink 1s step-end infinite' : 'none';
+    }
+  };
+
+  const telegramMsg = `🏆 REWARD UNLOCKED!\n\n👤 ${kidName} just claimed a reward!\n\n${reward.icon} ${reward.name}\n⭐ ${reward.pts} pts earned\n🕐 ${now}\n\n— Isgro Crew Quest Board 🕹️`;
+
+  try {
+    const sends = TELEGRAM_CHAT_IDS
+      .filter(id => id !== 'JASON_CHAT_ID')
+      .map(chat_id =>
+        fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id, text: telegramMsg })
+        }).then(r => r.json())
+      );
+
+    const results = await Promise.all(sends);
+    const allOk = results.every(r => r.ok);
+    if (!allOk) throw new Error(results.find(r => !r.ok)?.description || 'Send failed');
+    updateStatus('✅ KRIS & DAD NOTIFIED!', false);
+  } catch (err) {
+    console.warn('Telegram error:', err);
+    updateStatus('❌ NOTIFY FAILED', false);
+    // Fallback mailto
+    const subject = `🏆 ${kidName} unlocked a reward! — ${reward.name}`;
+    const body = `Hi Kris & Jason!\n\n${kidName} just unlocked: ${reward.icon} ${reward.name}\nClaimed: ${now}\n\n— Isgro Crew Quest Board 🕹️`;
+    setTimeout(() => {
+      window.location.href = `mailto:kristina@motherdaughterteam.ca,jason.isgro@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }, 800);
+  }
+}
+
+function toggleChore(id) {
+  const wk = getWeekKey();
+  const key = wk + '_' + id;
+  const wasDone = !!state[key];
+  state[key] = !wasDone;
+  saveState();
+
+  if (!wasDone) {
+    const allChores = [...CHORES, ...getRotatingChores()];
+    const chore = allChores.find(c => c.id === id);
+    if (chore) {
+      launchConfetti(KIDS[chore.who].color);
+      showSlangPopup(chore.who, chore.pts, chore);
+    }
+  }
+
+  renderAll();
+}
+
+// --- TASK-SPECIFIC MESSAGES ---
+// Keyed by chore id, each has top (slang headline) + bottom (flavour line) + gif search term
+const TASK_MSGS = {
+  // Daily - all kids
+  a1:  { top: "BED: MADE. AURA: UP. 🛏️",        bottom: "Woke up and chose excellence. No cap.",           gif: "morning energy" },
+  a2:  { top: "PLATE CLEARED. W BEHAVIOUR. 🍽️",  bottom: "Didn't leave it for someone else. Respect.",      gif: "clean up" },
+  au1: { top: "BED IS MADE. SLAY ACTIVATED. 🛏️", bottom: "Started the day right. It's giving main character.", gif: "morning routine" },
+  au2: { top: "PLATES: GONE. TWICE. QUEEN. 🍽️",  bottom: "Breakfast and dinner, zero mess. The aura is immaculate.", gif: "nailed it girl" },
+  l1:  { top: "BED MADE! YOU'RE A HERO! 🛏️",     bottom: "Look at that tidy bed! Kris and Dad are SO proud!", gif: "happy kid morning" },
+  l2:  { top: "PLATES AWAY! SUPERSTAR! 🍽️",       bottom: "Breakfast AND dinner cleared! Team player energy!", gif: "good job kid" },
+
+  // Ashton weekly
+  a3:  { top: "DISHES LOADED. GG. 🍳",            bottom: "Stacked it proper. Not mid at all. Straight W.",  gif: "dishwasher loading" },
+  a4:  { top: "DISHWASHER EMPTIED. LEGEND. ✨",   bottom: "Every single dish. Let him cook — and he DID.",   gif: "kitchen clean" },
+  a5:  { top: "LAUNDRY FOLDED FR FR. 🧺",         bottom: "Didn't leave it in the basket. Built different.",  gif: "laundry folding" },
+  a6:  { top: "ROOM IS CLEAN. W RIZZ. 🧹",        bottom: "Clean room, clear mind, big aura. No cap.",       gif: "clean room" },
+  a7:  { top: "BATHROOM SLAYED. 🚿",              bottom: "Scrubbed it out. That's some serious dedication.", gif: "cleaning bathroom" },
+
+  // Autumn weekly
+  au3: { top: "DISHES LOADED. ATE! 🍳",           bottom: "Stacked and rinsed. She really said let me cook.", gif: "dishwasher" },
+  au4: { top: "DISHWASHER EMPTIED. ICONIC. ✨",   bottom: "Put every single thing away. Flawless.",           gif: "kitchen clean" },
+  au5: { top: "LAUNDRY FOLDED. SLAY. 🧺",         bottom: "Folded AND put away? She's built different.",      gif: "folding laundry" },
+  au6: { top: "ROOM CLEANED. QUEEN. 🧹",          bottom: "Tidied, vacuumed, surfaces wiped. Immaculate.",    gif: "clean bedroom" },
+  au7: { top: "BATHROOM SPARKLES. 💅",            bottom: "Sink and counters done. It's giving clean chaos.", gif: "cleaning" },
+
+  // Logan weekly
+  l3:  { top: "DISHES LOADED! HERO! 🍳",          bottom: "Passed every plate like a champion!",              gif: "helping kid" },
+  l4:  { top: "DISHES PUT AWAY! EPIC! ✨",         bottom: "Every cup in its home. Quest COMPLETE!",           gif: "good job" },
+  l5:  { top: "LAUNDRY FOLDED! WOW! 🧺",          bottom: "Look at those folds! Kris says WOW!",              gif: "happy dance kid" },
+
+  // Instruments
+  inst_a:  { top: "GUITAR PRACTICE. FIRE. 🎸",    bottom: "30 mins of shredding. The neighbours heard it.",   gif: "guitar playing" },
+  inst_au: { top: "VIOLIN PRACTICE. SLAY. 🎻",    bottom: "30 mins in. She ate that practice session.",       gif: "violin music" },
+  inst_l:  { top: "PIANO DONE! SUPERSTAR! 🎹",    bottom: "30 whole minutes! Beethoven would be proud!",      gif: "piano playing kid" },
+
+  // Plants & outdoor
+  plant_a:  { top: "PLANTS WATERED. W. 🪴",       bottom: "Checked the soil and everything. Responsible king.", gif: "watering plants" },
+  plant_au: { top: "OUTDOOR PLANTS FED. 🌿",      bottom: "They were thirsty and she showed UP. Main character.", gif: "garden watering" },
+  outdoor:  { top: "YARD CLEANED. LEGEND. 🍂",    bottom: "Went outside and handled it. Touch grass? Done.",  gif: "yard work" },
+
+  // Rotating
+  rot_cook: { top: "COOKED A MEAL. GOAT. 👨‍🍳",  bottom: "Actually cooked for the whole crew. No cap, fire.", gif: "cooking kid" },
+  rot_lunch:{ top: "LUNCH PACKED. W MOVE. 🥪",    bottom: "Future meal-prepper energy. Bet.",                  gif: "lunch box" },
+};
+
+// Fallback generic messages per kid if no task match
+const SLANG_FALLBACK = {
+  ashton: [
+    { top: "GG no re! 🎮",              bottom: "That quest? Absolutely cooked. No cap.",        gif: "victory dance" },
+    { top: "Sheeeesh! 😤",              bottom: "Not you being the hardest worker in the crew.",  gif: "mic drop" },
+    { top: "It's giving… W behaviour 👑",bottom: "Not mid at all. Straight FIRE.",                gif: "winning" },
+  ],
+  autumn: [
+    { top: "Slay! ✨",                  bottom: "She ate that and left zero crumbs.",             gif: "slay queen" },
+    { top: "Ate! 💅",                   bottom: "Did that with zero sweat. Main character only.", gif: "yass queen" },
+    { top: "GG queen! 🎮",              bottom: "Top-tier aura right there. Bet.",                gif: "hair flip" },
+  ],
+  logan: [
+    { top: "YESSS! 🌟",                 bottom: "You did it! That was SO awesome!",               gif: "happy dance kid" },
+    { top: "AMAZING! 🏆",               bottom: "You crushed it! High five! 🙌",                  gif: "celebrate" },
+    { top: "SUPERSTAR! 💥",             bottom: "You're on fire today! Keep it up!",              gif: "super hero kid" },
+  ],
+};
+
+// Curated GIF URLs per task — no API key needed, always loads
+const TASK_GIFS = {
+  // Beds
+  a1:       'https://media.tenor.com/GgIhl-TdMMwAAAAM/morning-good-morning.gif',
+  au1:      'https://media.tenor.com/GgIhl-TdMMwAAAAM/morning-good-morning.gif',
+  l1:       'https://media.tenor.com/XbbcMGr9pmYAAAAM/yay-happy.gif',
+  // Plates
+  a2:       'https://media.tenor.com/pAkOfyO3BVMAAAAM/clean-clean-up.gif',
+  au2:      'https://media.tenor.com/pAkOfyO3BVMAAAAM/clean-clean-up.gif',
+  l2:       'https://media.tenor.com/XbbcMGr9pmYAAAAM/yay-happy.gif',
+  // Dishwasher
+  a3:       'https://media.tenor.com/pAkOfyO3BVMAAAAM/clean-clean-up.gif',
+  a4:       'https://media.tenor.com/dHDTRXCEumYAAAAM/mic-drop-done.gif',
+  au3:      'https://media.tenor.com/pAkOfyO3BVMAAAAM/clean-clean-up.gif',
+  au4:      'https://media.tenor.com/dHDTRXCEumYAAAAM/mic-drop-done.gif',
+  l3:       'https://media.tenor.com/XbbcMGr9pmYAAAAM/yay-happy.gif',
+  l4:       'https://media.tenor.com/XbbcMGr9pmYAAAAM/yay-happy.gif',
+  // Laundry
+  a5:       'https://media.tenor.com/3N_j8P0UFKYAAAAM/nailed-it-done.gif',
+  au5:      'https://media.tenor.com/3N_j8P0UFKYAAAAM/nailed-it-done.gif',
+  l5:       'https://media.tenor.com/XbbcMGr9pmYAAAAM/yay-happy.gif',
+  // Bedroom
+  a6:       'https://media.tenor.com/dHDTRXCEumYAAAAM/mic-drop-done.gif',
+  au6:      'https://media.tenor.com/dHDTRXCEumYAAAAM/mic-drop-done.gif',
+  // Bathroom
+  a7:       'https://media.tenor.com/3N_j8P0UFKYAAAAM/nailed-it-done.gif',
+  au7:      'https://media.tenor.com/3N_j8P0UFKYAAAAM/nailed-it-done.gif',
+  // Instruments
+  inst_a:   'https://media.tenor.com/UqMpTpMKRXUAAAAM/guitar-playing.gif',
+  inst_au:  'https://media.tenor.com/p3F6KNHGC9QAAAAM/violin-music.gif',
+  inst_l:   'https://media.tenor.com/7sFETHXNlRIAAAAM/piano-playing.gif',
+  // Plants & outdoor
+  plant_a:  'https://media.tenor.com/dHDTRXCEumYAAAAM/mic-drop-done.gif',
+  plant_au: 'https://media.tenor.com/dHDTRXCEumYAAAAM/mic-drop-done.gif',
+  outdoor:  'https://media.tenor.com/3N_j8P0UFKYAAAAM/nailed-it-done.gif',
+  // Rotating
+  rot_cook: 'https://media.tenor.com/pAkOfyO3BVMAAAAM/clean-clean-up.gif',
+  rot_lunch:'https://media.tenor.com/3N_j8P0UFKYAAAAM/nailed-it-done.gif',
+  // Fallbacks by vibe
+  victory:  'https://media.tenor.com/dHDTRXCEumYAAAAM/mic-drop-done.gif',
+  slay:     'https://media.tenor.com/3N_j8P0UFKYAAAAM/nailed-it-done.gif',
+  kid:      'https://media.tenor.com/XbbcMGr9pmYAAAAM/yay-happy.gif',
+};
+
+async function fetchGif(searchTerm) {
+  // Map search terms to our curated GIFs — no API needed
+  const termMap = {
+    'morning energy':    TASK_GIFS.a1,
+    'morning routine':   TASK_GIFS.au1,
+    'clean up':          TASK_GIFS.a2,
+    'nailed it girl':    TASK_GIFS.au2,
+    'happy kid morning': TASK_GIFS.l1,
+    'good job kid':      TASK_GIFS.l2,
+    'dishwasher loading':TASK_GIFS.a3,
+    'dishwasher':        TASK_GIFS.au3,
+    'kitchen clean':     TASK_GIFS.a4,
+    'laundry folding':   TASK_GIFS.a5,
+    'folding laundry':   TASK_GIFS.au5,
+    'clean room':        TASK_GIFS.a6,
+    'clean bedroom':     TASK_GIFS.au6,
+    'cleaning bathroom': TASK_GIFS.a7,
+    'cleaning':          TASK_GIFS.au7,
+    'guitar playing':    TASK_GIFS.inst_a,
+    'violin music':      TASK_GIFS.inst_au,
+    'piano playing kid': TASK_GIFS.inst_l,
+    'watering plants':   TASK_GIFS.plant_a,
+    'garden watering':   TASK_GIFS.plant_au,
+    'yard work':         TASK_GIFS.outdoor,
+    'cooking kid':       TASK_GIFS.rot_cook,
+    'lunch box':         TASK_GIFS.rot_lunch,
+    'victory dance':     TASK_GIFS.victory,
+    'mic drop':          TASK_GIFS.victory,
+    'winning':           TASK_GIFS.victory,
+    'slay queen':        TASK_GIFS.slay,
+    'yass queen':        TASK_GIFS.slay,
+    'hair flip':         TASK_GIFS.slay,
+    'happy dance kid':   TASK_GIFS.kid,
+    'celebrate':         TASK_GIFS.kid,
+    'super hero kid':    TASK_GIFS.kid,
+  };
+  return termMap[searchTerm] || TASK_GIFS.victory;
+}
+
+async function showSlangPopup(who, pts, chore) {
+  // Pick task-specific message or fall back to generic
+  let msg;
+  let gifTerm;
+  if (chore && TASK_MSGS[chore.id]) {
+    msg = TASK_MSGS[chore.id];
+    gifTerm = msg.gif;
+  } else {
+    const fallbacks = SLANG_FALLBACK[who];
+    msg = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+    gifTerm = msg.gif;
+  }
+
+  const existing = document.getElementById('slang-popup');
+  if (existing) existing.remove();
+  const existingOv = document.getElementById('popup-overlay');
+  if (existingOv) existingOv.remove();
+
+  // Neon colour per kid
+  const kid = KIDS[who];
+  const neonMap = { ashton: '#FF6B6B', autumn: '#A78BFA', logan: '#34D399' };
+  const neon = neonMap[who];
+
+  const popup = document.createElement('div');
+  popup.id = 'slang-popup';
+  popup.style.cssText = `
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.5);
+    background: #0a0a1a;
+    border-radius: 8px;
+    padding: 24px 22px 20px;
+    text-align: center;
+    z-index: 1001;
+    width: min(360px, 92vw);
+    box-shadow: 0 0 0 3px ${neon}, 0 0 30px ${neon}88, 0 0 60px ${neon}33;
+    font-family: 'Nunito', sans-serif;
+    opacity: 0;
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+  `;
+
+  // Scanline overlay inside popup
+  popup.innerHTML = `
+    <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.15) 3px,rgba(0,0,0,0.15) 4px);pointer-events:none;z-index:1"></div>
+
+    <div style="position:relative;z-index:2">
+      <div style="font-family:'Press Start 2P',monospace;font-size:0.62rem;color:${neon};letter-spacing:2px;margin-bottom:10px;text-shadow:0 0 6px ${neon};opacity:0.7">
+        ★ ISGRO CREW ★ ACHIEVEMENT UNLOCKED ★
+      </div>
+
+      <div style="margin-bottom:8px">${mcHead(who, 56)}</div>
+
+      <div style="font-family:'Press Start 2P',monospace;font-size:1rem;color:${neon};line-height:1.8;margin-bottom:10px;text-shadow:0 0 10px ${neon}">
+        ${msg.top}
+      </div>
+
+      <div style="width:100%;margin:10px 0;border:2px solid ${neon}44;border-radius:6px;background:#050510;padding:14px 10px;text-align:center">
+        <div style="font-family:'Press Start 2P',monospace;font-size:0.55rem;color:${neon};opacity:0.7;margin-bottom:6px;letter-spacing:1px">QUEST VALUE</div>
+        <div style="font-family:'Press Start 2P',monospace;font-size:1.4rem;color:${neon};text-shadow:0 0 12px ${neon}">+${pts} ⭐</div>
+        <div style="font-family:'Press Start 2P',monospace;font-size:0.5rem;color:#8888bb;margin-top:6px">POINTS EARNED</div>
+      </div>
+
+      <div style="font-size:1.1rem;font-weight:700;color:#8888bb;margin-bottom:12px;line-height:1.5">${msg.bottom}</div>
+
+      <button id="popup-close-btn"
+        style="background:${neon};color:#000;border:none;border-radius:4px;padding:12px 28px;font-family:'Press Start 2P',monospace;font-size:0.75rem;cursor:pointer;width:100%;letter-spacing:1px;box-shadow:0 0 12px ${neon}88;transition:all 0.15s">
+        [ LET'S GO! 🔥 ]
+      </button>
+    </div>
+  `;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'popup-overlay';
+  overlay.style.cssText = `
+    position:fixed;top:0;left:0;width:100%;height:100%;
+    background:rgba(0,0,0,0.7);z-index:1000;
+    backdrop-filter:blur(4px);
+  `;
+
+  const closePopup = () => {
+    popup.remove();
+    overlay.remove();
+  };
+  overlay.onclick = closePopup;
+  document.body.appendChild(overlay);
+  document.body.appendChild(popup);
+
+  document.getElementById('popup-close-btn').onclick = closePopup;
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      popup.style.opacity = '1';
+      popup.style.transform = 'translate(-50%, -50%) scale(1)';
+    });
+  });
+
+  // Auto-dismiss after 6s
+  setTimeout(() => {
+    if (document.getElementById('slang-popup')) closePopup();
+  }, 6000);
+}
+
+function filterBy(who, btn) {
+  currentFilter = who;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderChores();
+}
+
+function changeWeek(dir) {
+  weekOffset += dir;
+  loadState();
+  renderAll();
+  renderWeekLabel();
+}
+
+function renderWeekLabel() {
+  const now = new Date();
+  now.setDate(now.getDate() + weekOffset * 7);
+  const start = new Date(now);
+  start.setDate(now.getDate() - now.getDay() + 1);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  const opts = { month: 'short', day: 'numeric' };
+  document.getElementById('weekLabel').textContent =
+    `${weekOffset === 0 ? 'This Week · ' : ''}${start.toLocaleDateString('en-CA', opts)} – ${end.toLocaleDateString('en-CA', opts)}`;
+}
+
+function resetWeek() {
+  if (!confirm('Reset all chores for this week? Points will go back to 0.')) return;
+  const wk = getWeekKey();
+  Object.keys(state).forEach(k => { if (k.startsWith(wk)) delete state[k]; });
+  saveState();
+  renderAll();
+}
+
+function renderAll() {
+  renderScoreboard();
+  renderChores();
+  renderRewards();
+}
+
+function launchConfetti(color) {
+  const wrap = document.getElementById('confetti');
+  const colors = [color, '#FBBF24', '#F9FAFB', '#ffffff'];
+  for (let i = 0; i < 22; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = (20 + Math.random() * 60) + '%';
+    el.style.top = '-20px';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.width = (8 + Math.random() * 8) + 'px';
+    el.style.height = (8 + Math.random() * 8) + 'px';
+    el.style.animationDelay = (Math.random() * 0.4) + 's';
+    el.style.animationDuration = (0.9 + Math.random() * 0.6) + 's';
+    el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    wrap.appendChild(el);
+    setTimeout(() => el.remove(), 2000);
+  }
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// Init
+loadState();
+renderWeekLabel();
+renderAll();
+
+// Register Service Worker for PWA / offline support
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => console.log('✅ Quest Board SW registered'))
+      .catch(err => console.warn('SW registration failed:', err));
+  });
+}
+
+// iOS install hint (shown once)
+window.addEventListener('load', () => {
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone;
+  const dismissed = localStorage.getItem('install-hint-dismissed');
+  if (isIOS && !isStandalone && !dismissed) {
+    const banner = document.createElement('div');
+    banner.style.cssText = `
+      position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+      background:#1E1B4B; color:white; border-radius:16px;
+      padding:14px 20px; font-family:'Nunito',sans-serif; font-size:0.85rem;
+      font-weight:700; max-width:320px; width:calc(100% - 40px);
+      text-align:center; z-index:9999; box-shadow:0 8px 30px rgba(0,0,0,0.25);
+      animation: slideUp 0.4s ease;
+    `;
+    banner.innerHTML = `📲 Add to Home Screen!<br><span style="font-weight:600;opacity:0.85">Tap the Share button <b>⬆</b> then <b>"Add to Home Screen"</b></span><br><button onclick="localStorage.setItem('install-hint-dismissed','1');this.parentElement.remove()" style="margin-top:10px;background:rgba(255,255,255,0.15);border:none;color:white;padding:6px 18px;border-radius:20px;font-family:'Nunito',sans-serif;font-weight:700;cursor:pointer;">Got it ✓</button>`;
+    document.body.appendChild(banner);
+  }
+});
+</script>
+</body>
+</html>
