@@ -587,6 +587,7 @@
 </div>
 
 <button class="reset-btn" onclick="resetWeek()">🔄 Reset This Week's Quests</button>
+<button class="reset-btn" onclick="clearRedeemed()" style="margin-top:8px;font-size:0.35rem;opacity:0.3">⚙ admin: clear redeemed</button>
 
 <script>
 const KIDS = {
@@ -1559,6 +1560,14 @@ function showToast(msg) {
   t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function clearRedeemed() {
+  if (!confirm('Clear all redeemed rewards?')) return;
+  Object.keys(localStorage)
+    .filter(k => k.startsWith('redeemed_'))
+    .forEach(k => localStorage.removeItem(k));
+  renderRewards();
 }
 
 // Init
