@@ -55,7 +55,10 @@ export class StateManager {
     this.broadcast({ choreId, completed: state[choreId] });
 
     return new Response(JSON.stringify({ choreId, completed: state[choreId] }), {
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
     });
   }
 
