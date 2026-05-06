@@ -591,61 +591,12 @@
 
 <script>
 const KIDS = {
-  ashton: { name: 'Ashton', age: 13, emoji: '⚔️', color: '#FF6B6B' },
-  autumn: { name: 'Autumn', age: 12, emoji: '🪄', color: '#A78BFA' },
   logan:  { name: 'Logan',  age: 7,  emoji: '🛡️', color: '#34D399' }
 };
 
 // Minecraft-style pixel head SVGs per kid
 function mcHead(who, size = 48) {
   const heads = {
-
-    // ── ASHTON = CREEPER ──
-    // Green face, dark forehead, iconic creeper eyes & mouth
-    ashton: `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 8 8" shape-rendering="crispEdges">
-      <!-- base green face -->
-      <rect x="1" y="0" width="6" height="7" fill="#4A7C3F"/>
-      <!-- darker forehead band -->
-      <rect x="1" y="0" width="6" height="1" fill="#2D5A22"/>
-      <!-- darker shading sides -->
-      <rect x="1" y="0" width="1" height="7" fill="#3A6B30"/>
-      <rect x="6" y="0" width="1" height="7" fill="#3A6B30"/>
-      <!-- creeper eyes — two dark squares -->
-      <rect x="2" y="2" width="1" height="1" fill="#111111"/>
-      <rect x="5" y="2" width="1" height="1" fill="#111111"/>
-      <!-- creeper mouth — classic T shape -->
-      <rect x="3" y="4" width="2" height="1" fill="#111111"/>
-      <rect x="3" y="5" width="1" height="1" fill="#111111"/>
-      <rect x="4" y="5" width="1" height="1" fill="#111111"/>
-      <rect x="2" y="5" width="1" height="1" fill="#111111"/>
-      <rect x="5" y="5" width="1" height="1" fill="#111111"/>
-      <!-- subtle pixel highlight -->
-      <rect x="2" y="1" width="1" height="1" fill="#5A9C4A"/>
-    </svg>`,
-
-    // ── AUTUMN = ZOMBIE ──
-    // Rotting greenish skin, grey-blue tones, zombie eyes, jagged mouth
-    autumn: `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 8 8" shape-rendering="crispEdges">
-      <!-- zombie skin base — desaturated green-grey -->
-      <rect x="1" y="0" width="6" height="7" fill="#6B8C5A"/>
-      <!-- darker patches (rotting effect) -->
-      <rect x="1" y="0" width="2" height="2" fill="#4A6B3A"/>
-      <rect x="5" y="3" width="2" height="2" fill="#4A6B3A"/>
-      <rect x="3" y="5" width="1" height="2" fill="#4A6B3A"/>
-      <!-- shading sides -->
-      <rect x="1" y="0" width="1" height="7" fill="#5A7A4A"/>
-      <rect x="6" y="0" width="1" height="7" fill="#5A7A4A"/>
-      <!-- zombie eyes — dark with grey iris -->
-      <rect x="2" y="2" width="1" height="1" fill="#1a1a1a"/>
-      <rect x="5" y="2" width="1" height="1" fill="#1a1a1a"/>
-      <!-- jagged zombie mouth -->
-      <rect x="2" y="5" width="4" height="1" fill="#2a1a1a"/>
-      <rect x="3" y="4" width="1" height="1" fill="#2a1a1a"/>
-      <rect x="5" y="4" width="1" height="1" fill="#2a1a1a"/>
-      <!-- light highlight top left -->
-      <rect x="2" y="1" width="1" height="1" fill="#7AAD68"/>
-    </svg>`,
-
     // ── LOGAN = SKELETON ──
     // Bone white/grey face, black hollow eyes, skeleton nose hole, teeth mouth
     logan: `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 8 8" shape-rendering="crispEdges">
@@ -671,64 +622,23 @@ function mcHead(who, size = 48) {
       <rect x="2" y="1" width="1" height="1" fill="#E8E8E8"/>
     </svg>`
   };
-  return heads[who] || heads.ashton;
+  return heads[who] || heads.logan;
 }
 
 const BADGES = ['🌱','⭐','🌟','💫','🏅','🥈','🥇','👑'];
 
 const CHORES = [
   // --- DAILY ---
-  { id: 'a1',  who: 'ashton', day: 'daily',  emoji: '🛏️', text: 'Make your bed',          sub: 'Tidy it up each morning',      pts: 5  },
-  { id: 'a2',  who: 'ashton', day: 'daily',  emoji: '🍽️', text: 'Clear breakfast & dinner plate', sub: 'Both meals — bring it to the sink', pts: 8  },
-  { id: 'au1', who: 'autumn', day: 'daily',  emoji: '🛏️', text: 'Make your bed',          sub: 'Tidy it up each morning',      pts: 5  },
-  { id: 'au2', who: 'autumn', day: 'daily',  emoji: '🍽️', text: 'Clear breakfast & dinner plate', sub: 'Both meals — bring it to the sink', pts: 8  },
   { id: 'l1',  who: 'logan',  day: 'daily',  emoji: '🛏️', text: 'Make your bed',          sub: 'With help if needed 😊',       pts: 5  },
   { id: 'l2',  who: 'logan',  day: 'daily',  emoji: '🍽️', text: 'Clear breakfast & dinner plate', sub: 'Both meals — bring it to the sink', pts: 8  },
   // --- WEEKLY ---
-  { id: 'a3',  who: 'ashton', day: 'weekly', emoji: '🍳', text: 'Load the dishwasher',     sub: 'Rinse & stack it properly',    pts: 10 },
-  { id: 'a4',  who: 'ashton', day: 'weekly', emoji: '✨', text: 'Unload the dishwasher',   sub: 'Put everything away',          pts: 10 },
-  { id: 'a5',  who: 'ashton', day: 'weekly', emoji: '🧺', text: 'Fold your laundry',       sub: 'Fold & put it all away',       pts: 12 },
-  { id: 'a6',  who: 'ashton', day: 'weekly', emoji: '🧹', text: 'Clean your bedroom',      sub: 'Tidy, vacuum, surfaces',       pts: 15 },
-  { id: 'a7',  who: 'ashton', day: 'weekly', emoji: '🚿', text: 'Clean your bathroom',     sub: 'Sink, toilet & counters',      pts: 15 },
-  { id: 'au3', who: 'autumn', day: 'weekly', emoji: '🍳', text: 'Load the dishwasher',     sub: 'Rinse & stack it properly',    pts: 10 },
-  { id: 'au4', who: 'autumn', day: 'weekly', emoji: '✨', text: 'Unload the dishwasher',   sub: 'Put everything away',          pts: 10 },
-  { id: 'au5', who: 'autumn', day: 'weekly', emoji: '🧺', text: 'Fold your laundry',       sub: 'Fold & put it all away',       pts: 12 },
-  { id: 'au6', who: 'autumn', day: 'weekly', emoji: '🧹', text: 'Clean your bedroom',      sub: 'Tidy, vacuum, surfaces',       pts: 15 },
-  { id: 'au7', who: 'autumn', day: 'weekly', emoji: '🚿', text: 'Clean your bathroom',     sub: 'Sink, toilet & counters',      pts: 15 },
   { id: 'l3',  who: 'logan',  day: 'weekly', emoji: '🍳', text: 'Help load the dishwasher',sub: 'Pass dishes to Kris or Dad',   pts: 10 },
   { id: 'l4',  who: 'logan',  day: 'weekly', emoji: '✨', text: 'Help unload dishwasher',  sub: 'Put away the plastic stuff',   pts: 10 },
   { id: 'l5',  who: 'logan',  day: 'weekly', emoji: '🧺', text: 'Fold your laundry',       sub: 'With help if needed 😊',       pts: 10 },
-  // --- INSTRUMENTS ---
-  { id: 'inst_a',  who: 'ashton', day: 'weekly', emoji: '🎸', text: 'Guitar practice',         sub: '30 mins — play something good',  pts: 15 },
-  { id: 'inst_au', who: 'autumn', day: 'weekly', emoji: '🎻', text: 'Violin practice',          sub: '30 mins — practice your piece',  pts: 15 },
   { id: 'inst_l',  who: 'logan',  day: 'weekly', emoji: '🎹', text: 'Piano practice',           sub: '30 mins — fingers on the keys!', pts: 15 },
-  // --- PLANTS & OUTDOOR ---
-  { id: 'plant_a',  who: 'ashton', day: 'weekly', emoji: '🪴', text: 'Water indoor plants',     sub: 'Check soil first, don\'t overwater', pts: 8 },
-  { id: 'plant_au', who: 'autumn', day: 'weekly', emoji: '🌿', text: 'Water outdoor plants',    sub: 'Give them a good drink',            pts: 8 },
-  { id: 'outdoor',  who: 'ashton', day: 'weekly', emoji: '🍂', text: 'Help with outdoor cleanup', sub: 'Ask Kris or Dad what needs doing', pts: 12 },
 ];
 
 const REWARDS = [
-  // ── ASHTON (age 13) — 8 rewards ──
-  { id: 'r_a1', who: 'ashton', icon: '🍔', name: 'Pick your fave takeout',      pts: 40 },
-  { id: 'r_a2', who: 'ashton', icon: '🎬', name: 'Pick the family movie',       pts: 35 },
-  { id: 'r_a3', who: 'ashton', icon: '🌙', name: 'Stay up 1 hr late (Fri/Sat)', pts: 45 },
-  { id: 'r_a4', who: 'ashton', icon: '🛍️', name: 'Mall trip + $20 spending $',  pts: 100 },
-  { id: 'r_a5', who: 'ashton', icon: '🎮', name: 'New video game / app',        pts: 60 },
-  { id: 'r_a6', who: 'ashton', icon: '🏃', name: 'Activity day (your pick)',     pts: 80 },
-  { id: 'r_a7', who: 'ashton', icon: '🍦', name: 'Ice cream trip',              pts: 30 },
-  { id: 'r_a8', who: 'ashton', icon: '📱', name: '1 hr extra screen time',      pts: 25 },
-
-  // ── AUTUMN (age 12) — 8 rewards ──
-  { id: 'r_au1', who: 'autumn', icon: '🍔', name: 'Pick your fave takeout',     pts: 40 },
-  { id: 'r_au2', who: 'autumn', icon: '🎬', name: 'Pick the family movie',      pts: 35 },
-  { id: 'r_au3', who: 'autumn', icon: '🌙', name: 'Stay up 1 hr late (Fri/Sat)',pts: 45 },
-  { id: 'r_au4', who: 'autumn', icon: '🛍️', name: 'Mall trip + $20 spending $', pts: 100 },
-  { id: 'r_au5', who: 'autumn', icon: '💅', name: 'Mani-pedi with Kris',        pts: 60 },
-  { id: 'r_au6', who: 'autumn', icon: '🎭', name: 'Activity day (your pick)',    pts: 80 },
-  { id: 'r_au7', who: 'autumn', icon: '🍦', name: 'Ice cream trip',             pts: 30 },
-  { id: 'r_au8', who: 'autumn', icon: '📱', name: '1 hr extra screen time',     pts: 25 },
-
   // ── LOGAN (age 7) — 8 rewards ──
   { id: 'r_l1', who: 'logan',  icon: '🍔', name: 'Pick your fave takeout',      pts: 25 },
   { id: 'r_l2', who: 'logan',  icon: '🎬', name: 'Pick the family movie',       pts: 20 },
@@ -738,14 +648,9 @@ const REWARDS = [
   { id: 'r_l6', who: 'logan',  icon: '🎯', name: 'Activity day (your pick)',     pts: 50 },
   { id: 'r_l7', who: 'logan',  icon: '🍦', name: 'Ice cream trip',              pts: 18 },
   { id: 'r_l8', who: 'logan',  icon: '📱', name: '1 hr extra screen time',      pts: 15 },
-
-  // ── FAMILY (everyone) ──
-  { id: 'r19', who: 'all',    icon: '🍕', name: 'Pizza night (your choice)',    pts: 120 },
-  { id: 'r20', who: 'all',    icon: '🎳', name: 'Family bowling night',         pts: 150 },
-  { id: 'r21', who: 'all',    icon: '🥾', name: 'Family hike day',              pts: 80  },
 ];
 
-let currentFilter = 'all';
+let currentFilter = 'logan';
 let weekOffset = 0;
 let state = {};
 

@@ -1,7 +1,7 @@
 {
-  "name": "Isgro Crew Chore Chart",
-  "short_name": "Chore Chart",
-  "description": "The Isgro family chore tracker with points and rewards!",
+  "name": "Logan's Mission Board",
+  "short_name": "Mission Board",
+  "description": "Logan's mission board with tasks and rewards!",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#FFF9F0",
