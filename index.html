@@ -587,6 +587,7 @@
 </div>
 
 <button class="reset-btn" onclick="resetWeek()">🔄 Reset This Week's Quests</button>
+<button class="reset-btn" onclick="clearRedeemed()" style="margin-top:8px;font-size:0.35rem;opacity:0.3">⚙ admin: clear redeemed</button>
 
 <script>
 const KIDS = {
@@ -694,8 +695,8 @@ const CHORES = [
   { id: 'au5', who: 'autumn', day: 'weekly', emoji: '🧺', text: 'Fold your laundry',       sub: 'Fold & put it all away',       pts: 12 },
   { id: 'au6', who: 'autumn', day: 'weekly', emoji: '🧹', text: 'Clean your bedroom',      sub: 'Tidy, vacuum, surfaces',       pts: 15 },
   { id: 'au7', who: 'autumn', day: 'weekly', emoji: '🚿', text: 'Clean your bathroom',     sub: 'Sink, toilet & counters',      pts: 15 },
-  { id: 'l3',  who: 'logan',  day: 'weekly', emoji: '🍳', text: 'Help load the dishwasher',sub: 'Pass dishes to Kris or Dad',   pts: 8  },
-  { id: 'l4',  who: 'logan',  day: 'weekly', emoji: '✨', text: 'Help unload dishwasher',  sub: 'Put away the plastic stuff',   pts: 8  },
+  { id: 'l3',  who: 'logan',  day: 'weekly', emoji: '🍳', text: 'Help load the dishwasher',sub: 'Pass dishes to Kris or Dad',   pts: 10 },
+  { id: 'l4',  who: 'logan',  day: 'weekly', emoji: '✨', text: 'Help unload dishwasher',  sub: 'Put away the plastic stuff',   pts: 10 },
   { id: 'l5',  who: 'logan',  day: 'weekly', emoji: '🧺', text: 'Fold your laundry',       sub: 'With help if needed 😊',       pts: 10 },
   // --- INSTRUMENTS ---
   { id: 'inst_a',  who: 'ashton', day: 'weekly', emoji: '🎸', text: 'Guitar practice',         sub: '30 mins — play something good',  pts: 15 },
@@ -729,14 +730,14 @@ const REWARDS = [
   { id: 'r_au8', who: 'autumn', icon: '📱', name: '1 hr extra screen time',     pts: 25 },
 
   // ── LOGAN (age 7) — 8 rewards ──
-  { id: 'r_l1', who: 'logan',  icon: '🍔', name: 'Pick your fave takeout',      pts: 40 },
-  { id: 'r_l2', who: 'logan',  icon: '🎬', name: 'Pick the family movie',       pts: 35 },
-  { id: 'r_l3', who: 'logan',  icon: '🌙', name: 'Stay up 30 min late',         pts: 25 },
-  { id: 'r_l4', who: 'logan',  icon: '🧸', name: 'Pick a new small toy',        pts: 60 },
-  { id: 'r_l5', who: 'logan',  icon: '🎮', name: 'New game / app',              pts: 45 },
-  { id: 'r_l6', who: 'logan',  icon: '🎯', name: 'Activity day (your pick)',     pts: 80 },
-  { id: 'r_l7', who: 'logan',  icon: '🍦', name: 'Ice cream trip',              pts: 30 },
-  { id: 'r_l8', who: 'logan',  icon: '📱', name: '1 hr extra screen time',      pts: 25 },
+  { id: 'r_l1', who: 'logan',  icon: '🍔', name: 'Pick your fave takeout',      pts: 25 },
+  { id: 'r_l2', who: 'logan',  icon: '🎬', name: 'Pick the family movie',       pts: 20 },
+  { id: 'r_l3', who: 'logan',  icon: '🌙', name: 'Stay up 30 min late',         pts: 15 },
+  { id: 'r_l4', who: 'logan',  icon: '🧸', name: 'Pick a new small toy',        pts: 40 },
+  { id: 'r_l5', who: 'logan',  icon: '🎮', name: 'New game / app',              pts: 30 },
+  { id: 'r_l6', who: 'logan',  icon: '🎯', name: 'Activity day (your pick)',     pts: 50 },
+  { id: 'r_l7', who: 'logan',  icon: '🍦', name: 'Ice cream trip',              pts: 18 },
+  { id: 'r_l8', who: 'logan',  icon: '📱', name: '1 hr extra screen time',      pts: 15 },
 
   // ── FAMILY (everyone) ──
   { id: 'r19', who: 'all',    icon: '🍕', name: 'Pizza night (your choice)',    pts: 120 },
@@ -1179,7 +1180,7 @@ async function showRewardPopup(rewardId) {
   // Auto-send via Telegram (via secure Cloudflare Worker)
   const TELEGRAM_CHAT_IDS  = [
     '1531590129',    // Kristina
-    'JASON_CHAT_ID', // Jason — replace with his numeric ID from @userinfobot
+    '326167601',    // Jason
   ];
   const TELEGRAM_WORKER_URL = 'https://isgro-crew.kristina-afe.workers.dev/';
 
@@ -1196,7 +1197,7 @@ async function showRewardPopup(rewardId) {
   const telegramMsg = `🏆 REWARD UNLOCKED!\n\n👤 ${kidName} just claimed a reward!\n\n${reward.icon} ${reward.name}\n⭐ ${reward.pts} pts earned\n🕐 ${now}\n\n— Isgro Crew Quest Board 🕹️`;
 
   try {
-    const chat_ids = TELEGRAM_CHAT_IDS.filter(id => id !== 'JASON_CHAT_ID');
+    const chat_ids = TELEGRAM_CHAT_IDS;
 
     const response = await fetch(TELEGRAM_WORKER_URL, {
       method: 'POST',
@@ -1441,16 +1442,14 @@ async function showSlangPopup(who, pts, chore) {
         ${msg.top}
       </div>
 
-      <div id="gif-zone" style="width:100%;min-height:80px;display:flex;align-items:center;justify-content:center;margin:10px 0;border:2px solid ${neon}44;border-radius:6px;background:#050510;overflow:hidden">
-        <div style="font-family:'Press Start 2P',monospace;font-size:0.75rem;color:${neon};opacity:0.5;animation:blink 1s step-end infinite">LOADING GIF...</div>
+      <div style="width:100%;margin:10px 0;border:2px solid ${neon}44;border-radius:6px;background:#050510;padding:14px 10px;text-align:center">
+        <div style="font-family:'Press Start 2P',monospace;font-size:0.55rem;color:${neon};opacity:0.7;margin-bottom:6px;letter-spacing:1px">QUEST VALUE</div>
+        <div style="font-family:'Press Start 2P',monospace;font-size:1.4rem;color:${neon};text-shadow:0 0 12px ${neon}">+${pts} ⭐</div>
+        <div style="font-family:'Press Start 2P',monospace;font-size:0.5rem;color:#8888bb;margin-top:6px">POINTS EARNED</div>
       </div>
 
       <div style="font-size:1.1rem;font-weight:700;color:#8888bb;margin-bottom:12px;line-height:1.5">${msg.bottom}</div>
 
-      <div style="font-family:'Press Start 2P',monospace;font-size:0.82rem;color:${neon};background:${neon}22;border:1px solid ${neon}55;border-radius:4px;padding:8px 14px;display:inline-block;margin-bottom:16px;text-shadow:0 0 6px ${neon}">
-        +${pts} PTS ★ ADDED
-      </div>
-      <br>
       <button id="popup-close-btn"
         style="background:${neon};color:#000;border:none;border-radius:4px;padding:12px 28px;font-family:'Press Start 2P',monospace;font-size:0.75rem;cursor:pointer;width:100%;letter-spacing:1px;box-shadow:0 0 12px ${neon}88;transition:all 0.15s">
         [ LET'S GO! 🔥 ]
@@ -1481,14 +1480,6 @@ async function showSlangPopup(who, pts, chore) {
       popup.style.opacity = '1';
       popup.style.transform = 'translate(-50%, -50%) scale(1)';
     });
-  });
-
-  // Fetch GIF async — swap in when ready
-  fetchGif(gifTerm).then(url => {
-    const zone = document.getElementById('gif-zone');
-    if (zone && url) {
-      zone.innerHTML = `<img src="${url}" style="max-width:100%;max-height:160px;border-radius:4px;display:block;margin:0 auto" alt="reaction gif">`;
-    }
   });
 
   // Auto-dismiss after 6s
@@ -1563,6 +1554,14 @@ function showToast(msg) {
   t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function clearRedeemed() {
+  if (!confirm('Clear all redeemed rewards?')) return;
+  Object.keys(localStorage)
+    .filter(k => k.startsWith('redeemed_'))
+    .forEach(k => localStorage.removeItem(k));
+  renderRewards();
 }
 
 // Init
