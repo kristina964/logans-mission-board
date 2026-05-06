@@ -23,8 +23,12 @@ export default {
       const obj = env.STATE.get(id);
       const response = await obj.fetch(request);
 
-      // Add CORS headers to response
-      const newResponse = new Response(response.body, response);
+      // Clone response and add CORS headers
+      const newResponse = new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: new Headers(response.headers)
+      });
       Object.entries(corsHeaders).forEach(([key, value]) => {
         newResponse.headers.set(key, value);
       });
