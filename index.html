@@ -590,6 +590,88 @@
 <button class="reset-btn" onclick="clearRedeemed()" style="margin-top:8px;font-size:0.35rem;opacity:0.3">⚙ admin: clear redeemed</button>
 
 <script>
+// ── API Configuration ──
+const WORKER_URL = 'https://logans-mission-sync.kristina-afe.workers.dev';
+let ws = null;
+let wsRetryCount = 0;
+const MAX_RETRY = 5;
+
+// API Module
+const API = {
+  async loadState(weekKey) {
+    try {
+      const response = await fetch(`${WORKER_URL}/api/state/${weekKey}`);
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error('Failed to load state from API, using empty state:', error);
+      return {};
+    }
+  },
+
+  async toggleChore(choreId) {
+    try {
+      const response = await fetch(`${WORKER_URL}/api/toggle/${choreId}`, {
+        method: 'POST'
+      });
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error('Failed to toggle chore via API:', error);
+      return null;
+    }
+  },
+
+  async resetChore(choreId) {
+    try {
+      const response = await fetch(`${WORKER_URL}/api/reset/${choreId}`, {
+        method: 'POST'
+      });
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error('Failed to reset chore via API:', error);
+      return null;
+    }
+  },
+
+  connectWebSocket() {
+    if (ws && ws.readyState === WebSocket.OPEN) return;
+
+    const wsURL = WORKER_URL.replace('https://', 'wss://') + '/ws';
+    ws = new WebSocket(wsURL);
+
+    ws.onopen = () => {
+      console.log('WebSocket connected');
+      wsRetryCount = 0;
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const update = JSON.parse(event.data);
+        const wk = getWeekKey();
+        const key = wk + '_' + update.choreId;
+        state[key] = update.completed;
+        renderAll();
+      } catch (error) {
+        console.error('Failed to process WebSocket message:', error);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket disconnected, attempting reconnect...');
+      if (wsRetryCount < MAX_RETRY) {
+        wsRetryCount++;
+        setTimeout(() => API.connectWebSocket(), 2000 * wsRetryCount);
+      }
+    };
+  }
+};
+
 const KIDS = {
   logan:  { name: 'Logan',  age: 7,  emoji: '🛡️', color: '#34D399' }
 };
@@ -703,14 +785,18 @@ function getRotatingChores() {
   ];
 }
 
-function loadState() {
-  const key = getWeekKey();
-  const saved = localStorage.getItem(key);
-  state = saved ? JSON.parse(saved) : {};
+async function loadState() {
+  const weekKey = getWeekKey();
+  const apiState = await API.loadState(weekKey);
+  // Convert API format { choreId: true/false } to app format { week_YYYY_WW_choreId: true/false }
+  state = {};
+  Object.entries(apiState).forEach(([choreId, completed]) => {
+    state[weekKey + '_' + choreId] = completed;
+  });
 }
 
 function saveState() {
-  localStorage.setItem(getWeekKey(), JSON.stringify(state));
+  // State is now saved via API in toggleChore, no need to call localStorage
 }
 
 function getMonthKey() {
@@ -1084,14 +1170,22 @@ async function showRewardPopup(rewardId) {
 
 }
 
-function toggleChore(id) {
+async function toggleChore(id) {
   const wk = getWeekKey();
   const key = wk + '_' + id;
   const wasDone = !!state[key];
-  state[key] = !wasDone;
-  saveState();
 
-  if (!wasDone) {
+  // Call API to toggle
+  const result = await API.toggleChore(id);
+  if (!result) {
+    console.error('Failed to toggle chore via API');
+    return;
+  }
+
+  // Update local state
+  state[key] = result.completed;
+
+  if (result.completed && !wasDone) {
     const allChores = [...CHORES, ...getRotatingChores()];
     const chore = allChores.find(c => c.id === id);
     if (chore) {
@@ -1379,11 +1473,18 @@ function renderWeekLabel() {
     `${weekOffset === 0 ? 'This Week · ' : ''}${start.toLocaleDateString('en-CA', opts)} – ${end.toLocaleDateString('en-CA', opts)}`;
 }
 
-function resetWeek() {
+async function resetWeek() {
   if (!confirm('Reset all chores for this week? Points will go back to 0.')) return;
   const wk = getWeekKey();
-  Object.keys(state).forEach(k => { if (k.startsWith(wk)) delete state[k]; });
-  saveState();
+  const keysToReset = Object.keys(state).filter(k => k.startsWith(wk));
+
+  // Reset via API
+  for (const key of keysToReset) {
+    const choreId = key.substring((wk + '_').length);
+    await API.resetChore(choreId);
+    delete state[key];
+  }
+
   renderAll();
 }
 
@@ -1429,10 +1530,14 @@ function clearRedeemed() {
   renderRewards();
 }
 
-// Init
-loadState();
-renderWeekLabel();
-renderAll();
+// Initialize on page load
+(async () => {
+  await loadState();
+  renderWeekLabel();
+  renderAll();
+  // Connect to real-time sync
+  API.connectWebSocket();
+})();
 
 // Register Service Worker for PWA / offline support
 if ('serviceWorker' in navigator) {

@@ -1,3 +1,11 @@
-name = "logans-mission-board"
-pages_build_output_dir = "."
+name = "logans-mission-sync"
+main = "worker/src/index.js"
 compatibility_date = "2024-01-01"
+
+[[durable_objects.bindings]]
+name = "STATE"
+class_name = "StateManager"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["StateManager"]
