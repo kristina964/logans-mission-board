@@ -1,16 +1,145 @@
-import { StateManager } from './durable-object.js';
+export class StateManager {
+  constructor(state, env) {
+    this.state = state;
+    this.env = env;
+    this.sessions = new Set();
+  }
 
-export { StateManager };
+  async fetch(request) {
+    const url = new URL(request.url);
+    const pathname = url.pathname;
+
+    // Handle WebSocket upgrade
+    if (pathname === '/ws') {
+      return this.handleWebSocket(request);
+    }
+
+    // GET /api/state/:weekKey
+    if (pathname.startsWith('/api/state/') && request.method === 'GET') {
+      const weekKey = pathname.split('/').pop();
+      return this.getState(weekKey);
+    }
+
+    // POST /api/toggle/:choreId
+    if (pathname.startsWith('/api/toggle/') && request.method === 'POST') {
+      const choreId = pathname.split('/').pop();
+      const kidId = url.searchParams.get('kidId');
+      return this.toggleChore(choreId, kidId);
+    }
+
+    // POST /api/reset/:choreId
+    if (pathname.startsWith('/api/reset/') && request.method === 'POST') {
+      const choreId = pathname.split('/').pop();
+      return this.resetChore(choreId);
+    }
+
+    return new Response('Not Found', { status: 404 });
+  }
+
+  async getState(weekKey) {
+    const state = await this.state.storage.get(weekKey) || {};
+    return new Response(JSON.stringify(state), {
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
+  }
+
+  async toggleChore(choreId, kidId) {
+    const today = new Date();
+    const weekKey = this.getWeekKey(today);
+    const state = await this.state.storage.get(weekKey) || {};
+
+    // Toggle completion status
+    state[choreId] = !state[choreId];
+
+    await this.state.storage.put(weekKey, state);
+    this.broadcast({ choreId, completed: state[choreId] });
+
+    return new Response(JSON.stringify({ choreId, completed: state[choreId] }), {
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
+  }
+
+  async resetChore(choreId) {
+    const today = new Date();
+    const weekKey = this.getWeekKey(today);
+    const state = await this.state.storage.get(weekKey) || {};
+
+    state[choreId] = false;
+    await this.state.storage.put(weekKey, state);
+    this.broadcast({ choreId, completed: false });
+
+    return new Response(JSON.stringify({ choreId, completed: false }), {
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
+  }
+
+  handleWebSocket(request) {
+    const pair = new WebSocketPair();
+    const [client, server] = Object.values(pair);
+
+    server.accept();
+    this.sessions.add(server);
+
+    server.addEventListener('close', () => {
+      this.sessions.delete(server);
+    });
+
+    return new Response(null, { status: 101, webSocket: client });
+  }
+
+  broadcast(message) {
+    const data = JSON.stringify(message);
+    for (const session of this.sessions) {
+      try {
+        session.send(data);
+      } catch (e) {
+        this.sessions.delete(session);
+      }
+    }
+  }
+
+  getWeekKey(date) {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+    const dayStart = new Date(Date.UTC(yearStart.getUTCFullYear(), 0, 4));
+    dayStart.setUTCDate(dayStart.getUTCDate() + 4 - (dayStart.getUTCDay() || 7));
+    const weekNum = Math.round((d - dayStart) / 86400000 / 7) + 1;
+    return `week_${d.getUTCFullYear()}_${weekNum}`;
+  }
+}
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    // Test endpoint to verify Worker is responding
+    if (url.pathname === '/health') {
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     // All API requests go to the Durable Object
     if (url.pathname.startsWith('/api/') || url.pathname === '/ws') {
-      const id = env.STATE.idFromName('chore-state');
-      const obj = env.STATE.get(id);
-      return obj.fetch(request);
+      try {
+        const id = env.STATE.idFromName('chore-state');
+        const obj = env.STATE.get(id);
+        const response = await obj.fetch(request);
+        return response;
+      } catch (error) {
+        return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+      }
     }
 
     // Other requests return 404
