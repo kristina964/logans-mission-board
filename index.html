@@ -1153,18 +1153,6 @@ async function showRewardPopup(rewardId) {
 
   // Mark redeemed immediately
   markRedeemed(rewardId);
-
-  // Send SMS notification
-  try {
-    await fetch(`${WORKER_URL}/api/send-sms`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rewardName: reward.name })
-    });
-  } catch (e) {
-    console.error('Failed to send SMS notification:', e);
-  }
-
   setTimeout(() => renderRewards(), 300);
 
 }
