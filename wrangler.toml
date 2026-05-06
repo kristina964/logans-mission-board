@@ -9,3 +9,12 @@ class_name = "StateManager"
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["StateManager"]
+
+[env.production]
+vars = { TWILIO_FROM_NUMBER = "+1XXXXXXXXXX" }
+
+[env.production.secrets]
+# Set these with: wrangler secret put TWILIO_ACCOUNT_SID --env production
+# TWILIO_ACCOUNT_SID = your twilio account sid
+# TWILIO_AUTH_TOKEN = your twilio auth token
+# TWILIO_TO_NUMBER = +19054678247
