@@ -13,6 +13,10 @@ new_sqlite_classes = ["StateManager"]
 [env.production]
 vars = { TWILIO_FROM_NUMBER = "+1XXXXXXXXXX" }
 
+[[env.production.durable_objects.bindings]]
+name = "STATE"
+class_name = "StateManager"
+
 [env.production.secrets]
 # Set these with: wrangler secret put TWILIO_ACCOUNT_SID --env production
 # TWILIO_ACCOUNT_SID = your twilio account sid
