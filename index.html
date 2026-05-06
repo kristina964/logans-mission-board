@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Isgro Crew Quest Board</title>
+<title>Logan's Mission Board</title>
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Quest Board">
+<meta name="apple-mobile-web-app-title" content="Logan's Mission">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -555,8 +555,8 @@
 
 <header>
   <div class="header-console">
-    <h1>ISGRO CREW</h1>
-    <p>★ QUEST BOARD ★</p>
+    <h1>LOGAN'S MISSION</h1>
+    <p>★ MISSION BOARD ★</p>
   </div>
 </header>
 
@@ -1177,46 +1177,6 @@ async function showRewardPopup(rewardId) {
   markRedeemed(rewardId);
   setTimeout(() => renderRewards(), 300);
 
-  // Auto-send via Telegram (via secure Cloudflare Worker)
-  const TELEGRAM_CHAT_IDS  = [
-    '1531590129',    // Kristina
-    '326167601',    // Jason
-  ];
-  const TELEGRAM_WORKER_URL = 'https://isgro-crew.kristina-afe.workers.dev/';
-
-  const now = new Date().toLocaleString('en-CA', { dateStyle: 'full', timeStyle: 'short' });
-
-  const updateStatus = (html, animate) => {
-    const el = document.getElementById('email-status');
-    if (el) {
-      el.innerHTML = html;
-      el.style.animation = animate ? 'blink 1s step-end infinite' : 'none';
-    }
-  };
-
-  const telegramMsg = `🏆 REWARD UNLOCKED!\n\n👤 ${kidName} just claimed a reward!\n\n${reward.icon} ${reward.name}\n⭐ ${reward.pts} pts earned\n🕐 ${now}\n\n— Isgro Crew Quest Board 🕹️`;
-
-  try {
-    const chat_ids = TELEGRAM_CHAT_IDS;
-
-    const response = await fetch(TELEGRAM_WORKER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_ids, message: telegramMsg })
-    });
-
-    if (!response.ok) throw new Error(`Worker responded with ${response.status}`);
-    updateStatus('✅ KRIS & DAD NOTIFIED!', false);
-  } catch (err) {
-    console.warn('Telegram error:', err);
-    updateStatus('❌ NOTIFY FAILED', false);
-    // Fallback mailto
-    const subject = `🏆 ${kidName} unlocked a reward! — ${reward.name}`;
-    const body = `Hi Kris & Jason!\n\n${kidName} just unlocked: ${reward.icon} ${reward.name}\nClaimed: ${now}\n\n— Isgro Crew Quest Board 🕹️`;
-    setTimeout(() => {
-      window.location.href = `mailto:kristina@motherdaughterteam.ca,jason.isgro@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    }, 800);
-  }
 }
 
 function toggleChore(id) {
